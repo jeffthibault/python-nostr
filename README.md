@@ -1,2 +1,2 @@
 # python-nostr
-A Nostr library for Python
+A Python library for making Nostr clients
