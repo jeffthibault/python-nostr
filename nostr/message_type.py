@@ -6,4 +6,5 @@ class ClientMessageType:
 class RelayMessageType:
     EVENT = "EVENT"
     NOTICE = "NOTICE"
+    END_OF_STORED_EVENTS = "EOSE"
     

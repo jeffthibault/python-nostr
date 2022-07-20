@@ -69,6 +69,8 @@ class Relay:
         message_type = message_json[0]
         if message_type == RelayMessageType.NOTICE:
             return True
+        if message_type == RelayMessageType.END_OF_STORED_EVENTS:
+            return True
         if message_type == RelayMessageType.EVENT:
             if not len(message_json) == 3:
                 return False
