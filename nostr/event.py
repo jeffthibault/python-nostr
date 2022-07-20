@@ -8,6 +8,8 @@ class EventKind(IntEnum):
     SET_METADATA = 0
     TEXT_NOTE = 1
     RECOMMEND_RELAY = 2
+    CONTACTS = 3
+    ENCRYPTED_DIRECT_MESSAGE = 4
     DELETE = 5
 
 class Event():
