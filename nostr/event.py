@@ -8,6 +8,7 @@ class EventKind(IntEnum):
     SET_METADATA = 0
     TEXT_NOTE = 1
     RECOMMEND_RELAY = 2
+    DELETE = 5
 
 class Event():
     def __init__(
