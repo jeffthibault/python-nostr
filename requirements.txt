@@ -1,0 +1,4 @@
+cffi==1.15.0
+pycparser==2.21
+secp256k1==0.14.0
+websocket-client==1.2.3
