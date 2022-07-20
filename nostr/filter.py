@@ -43,7 +43,7 @@ class Filter:
         
         return True
 
-    def to_json(self) -> dict:
+    def to_json_object(self) -> dict:
         res = {}
         if self.IDs != None:
             res["ids"] = self.IDs
@@ -74,9 +74,9 @@ class Filters(UserList):
                 return True
         return False
 
-    def to_json(self) -> list:
+    def to_json_array(self) -> list:
         res = []
         for filter in self.data:
-            res.append(filter.to_json())
+            res.append(filter.to_json_object())
         return res
         
