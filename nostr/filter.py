@@ -75,8 +75,5 @@ class Filters(UserList):
         return False
 
     def to_json_array(self) -> list:
-        res = []
-        for filter in self.data:
-            res.append(filter.to_json_object())
-        return res
+        return [filter.to_json_object() for filter in self.data]
         
