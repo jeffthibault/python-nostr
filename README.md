@@ -17,7 +17,8 @@ Note 1: I wrote this with Python 3.9.5.<br />
 Note 2: If the pip install fails, you might need to install wheel. Try ```pip install wheel```.
 
 # Disclaimer
-This library is in very early development and still a WIP.<br />
+This library is in very early development and still a WIP.<br /> 
+More NIPs will be handled.<br />
 There are probably bugs.<br />
 I need to add tests.<br />
-I will try to create a [PyPI](https://pypi.org/) package at some point.<br />
+I will try to publish this as a [PyPI](https://pypi.org/) package at some point.<br />
