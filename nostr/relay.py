@@ -12,6 +12,12 @@ class RelayPolicy:
         self.should_read = should_read
         self.should_write = should_write
 
+    def to_json_object(self) -> dict[str, bool]:
+        return { 
+            "read": self.should_read, 
+            "write": self.should_write
+        }
+
 class Relay:
     def __init__(
             self, 
@@ -60,6 +66,13 @@ class Relay:
                 break
 
         return None
+
+    def to_json_object(self) -> dict:
+        return {
+            "url": self.url,
+            "policy": self.policy.to_json_object(),
+            "subscriptions": [subscription.to_json_object() for subscription in self.subscriptions.values()]
+        }
 
     def _is_valid_message(self, message: str) -> bool:
         if not message or message[0] != '[' or message[-1] != ']':
