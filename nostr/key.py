@@ -30,12 +30,11 @@ def encrypt_message(content: str, shared_secret: str) -> str:
     iv = os.urandom(16)
 
     cipher = Cipher(algorithms.AES(bytes.fromhex(shared_secret)), modes.CBC(iv))
-    encryptor = cipher.encryptor()
-    
     padder = padding.PKCS7(128).padder()
     padded_data = padder.update(content.encode()) + padder.finalize()
+    encryptor = cipher.encryptor()
     encrypted_message = encryptor.update(padded_data) + encryptor.finalize()
-    
+
     return f"{base64.b64encode(encrypted_message).decode()}?iv={base64.b64encode(iv).decode()}"
 
 def decrypt_message(encoded_message: str, shared_secret: str) -> str:
@@ -49,5 +48,8 @@ def decrypt_message(encoded_message: str, shared_secret: str) -> str:
     decryptor = cipher.decryptor()
     decrypted_message = decryptor.update(encrypted_content) + decryptor.finalize()
 
-    return decrypted_message.decode()
+    unpadder = padding.PKCS7(128).unpadder()
+    unpadded_data = unpadder.update(decrypted_message) + unpadder.finalize()
+
+    return unpadded_data.decode()
     
