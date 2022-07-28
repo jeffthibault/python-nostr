@@ -30,9 +30,9 @@ class Relay:
         self.ws = ws
         self.subscriptions = subscriptions
 
-    def open_websocket_connection(self, timeout=None) -> None:
+    def open_websocket_connection(self, timeout: int=None) -> None:
         if timeout != None:
-            self.ws.connect(self.url, timeout)
+            self.ws.connect(self.url, timeout=timeout)
         else:
             self.ws.connect(self.url)
 
