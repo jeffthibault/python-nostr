@@ -1,5 +1,6 @@
 import os
 import base64
+from cffi import FFI
 from secp256k1 import PrivateKey, PublicKey
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
@@ -24,7 +25,7 @@ def get_key_pair() -> tuple:
 
 def compute_shared_secret(sender_private_key: str, receiver_public_key: str) -> str:
     public_key = PublicKey(bytes.fromhex("02" + receiver_public_key), True)
-    return public_key.ecdh(bytes.fromhex(sender_private_key)).hex() 
+    return public_key.ecdh(bytes.fromhex(sender_private_key), copy_x).hex() 
 
 def encrypt_message(content: str, shared_secret: str) -> str:
     iv = os.urandom(16)
@@ -32,6 +33,7 @@ def encrypt_message(content: str, shared_secret: str) -> str:
     cipher = Cipher(algorithms.AES(bytes.fromhex(shared_secret)), modes.CBC(iv))
     padder = padding.PKCS7(128).padder()
     padded_data = padder.update(content.encode()) + padder.finalize()
+
     encryptor = cipher.encryptor()
     encrypted_message = encryptor.update(padded_data) + encryptor.finalize()
 
@@ -52,4 +54,10 @@ def decrypt_message(encoded_message: str, shared_secret: str) -> str:
     unpadded_data = unpadder.update(decrypted_message) + unpadder.finalize()
 
     return unpadded_data.decode()
+
+ffi = FFI()
+@ffi.callback("int (unsigned char *, const unsigned char *, const unsigned char *, void *)")
+def copy_x(output, x32, y32, data):
+    ffi.memmove(output, x32, 32)
+    return 1
     
