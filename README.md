@@ -14,8 +14,8 @@ public_key = get_public_key(private_key)
 from nostr.relay_manager import RelayManager
 
 relay_manager = RelayManager()
-relay_manager.add_relay("wss://nostr-pub.wellorder.net", True, True)
-relay_manager.add_relay("wss://relay.damus.io", True, True)
+relay_manager.add_relay("wss://nostr-pub.wellorder.net")
+relay_manager.add_relay("wss://relay.damus.io")
 relay_manager.open_connection()
 
 while relay_manager.message_pool.has_notices():
@@ -30,8 +30,8 @@ from nostr.message_type import ClientMessageType
 from nostr.key import generate_private_key, get_public_key
 
 relay_manager = RelayManager()
-relay_manager.add_relay("wss://nostr-pub.wellorder.net", True, True)
-relay_manager.add_relay("wss://relay.damus.io", True, True)
+relay_manager.add_relay("wss://nostr-pub.wellorder.net")
+relay_manager.add_relay("wss://relay.damus.io")
 relay_manager.open_connection()
 
 private_key = generate_private_key()
@@ -51,14 +51,14 @@ from nostr.relay_manager import RelayManager
 from nostr.message_type import ClientMessageType
 from nostr.key import generate_private_key, get_public_key
 
-filters = Filters([Filter(authors=["<a nostr pubkey in hex>"], kinds=[EventKind.TEXT_NOTE])])
-subscription_id = "<a string to represent subscription id>"
+filters = Filters([Filter(authors=[<a nostr pubkey in hex>], kinds=[EventKind.TEXT_NOTE])])
+subscription_id = <a string to represent a subscription>
 request = [ClientMessageType.REQUEST, subscription_id]
 request.extend(filters.to_json_array())
 
 relay_manager = RelayManager()
-relay_manager.add_relay("wss://nostr-pub.wellorder.net", True, True)
-relay_manager.add_relay("wss://relay.damus.io", True, True)
+relay_manager.add_relay("wss://nostr-pub.wellorder.net")
+relay_manager.add_relay("wss://relay.damus.io")
 relay_manager.add_subscription(subscription_id, filters)
 relay_manager.open_connection()
 
