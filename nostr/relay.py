@@ -1,4 +1,5 @@
 import json
+from threading import Lock
 from websocket import WebSocketApp
 from .event import Event
 from .filter import Filters
@@ -28,6 +29,7 @@ class Relay:
         self.policy = policy
         self.message_pool = message_pool
         self.subscriptions = subscriptions
+        self.lock = Lock()
         self.ws = WebSocketApp(
             url,
             on_open=self._on_open,
@@ -45,14 +47,17 @@ class Relay:
         self.ws.send(message)
 
     def add_subscription(self, id, filters: Filters):
-        self.subscriptions[id] = Subscription(id, filters)
+        with self.lock:
+            self.subscriptions[id] = Subscription(id, filters)
 
     def close_subscription(self, id: str) -> None:
-        self.subscriptions.pop(id)
+        with self.lock:
+            self.subscriptions.pop(id)
 
     def update_subscription(self, id: str, filters: Filters) -> None:
-        subscription = self.subscriptions[id]
-        subscription.filters = filters
+        with self.lock:
+            subscription = self.subscriptions[id]
+            subscription.filters = filters
 
     def to_json_object(self) -> dict:
         return {
@@ -87,15 +92,19 @@ class Relay:
                 return False
             
             subscription_id = message_json[1]
-            if subscription_id not in self.subscriptions:
-                return False
+            with self.lock:
+                if subscription_id not in self.subscriptions:
+                    return False
 
             e = message_json[2]
             event = Event(e['pubkey'], e['content'], e['created_at'], e['kind'], e['tags'], e['id'], e['sig'])
             if not event.verify():
                 return False
 
-            if not self.subscriptions[subscription_id].filters.match(event):
+            with self.lock:
+                subscription = self.subscriptions[subscription_id]
+
+            if not subscription.filters.match(event):
                 return False
 
             return True
