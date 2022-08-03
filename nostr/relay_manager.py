@@ -30,16 +30,18 @@ class RelayManager:
             for relay in self.relays.values():
                 relay.close_subscription(id)
 
-    def open_connection(self, relay: Relay=None):
+    def open_connection(self, relay: Relay=None, ssl_options: dict=None):
         if relay != None:
             threading.Thread(
                 target=relay.connect,
+                args=(ssl_options,),
                 name=f"{relay.url}-thread"
             ).start()
         else:
             for relay in self.relays.values():
                 threading.Thread(
                     target=relay.connect,
+                    args=(ssl_options,),
                     name=f"{relay.url}-thread"
                 ).start()
 

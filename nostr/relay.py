@@ -1,5 +1,4 @@
 import json
-import ssl
 from websocket import WebSocketApp
 from .event import Event
 from .filter import Filters
@@ -36,8 +35,8 @@ class Relay:
             on_error=self._on_error,
             on_close=self._on_close)
 
-    def connect(self):
-        self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+    def connect(self, ssl_options: dict=None):
+        self.ws.run_forever(sslopt=ssl_options)
 
     def close(self):
         self.ws.close()
