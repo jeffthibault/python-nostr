@@ -16,7 +16,7 @@ from nostr.relay_manager import RelayManager
 relay_manager = RelayManager()
 relay_manager.add_relay("wss://nostr-pub.wellorder.net")
 relay_manager.add_relay("wss://relay.damus.io")
-relay_manager.open_connection()
+relay_manager.open_connections()
 
 while relay_manager.message_pool.has_notices():
   notice_msg = relay_manager.message_pool.get_notice()
@@ -32,7 +32,7 @@ from nostr.key import generate_private_key, get_public_key
 relay_manager = RelayManager()
 relay_manager.add_relay("wss://nostr-pub.wellorder.net")
 relay_manager.add_relay("wss://relay.damus.io")
-relay_manager.open_connection()
+relay_manager.open_connections()
 
 private_key = generate_private_key()
 public_key = get_public_key(private_key)
@@ -60,7 +60,7 @@ relay_manager = RelayManager()
 relay_manager.add_relay("wss://nostr-pub.wellorder.net")
 relay_manager.add_relay("wss://relay.damus.io")
 relay_manager.add_subscription(subscription_id, filters)
-relay_manager.open_connection()
+relay_manager.open_connections()
 
 message = json.dumps(request)
 relay_manager.publish_message(message)
