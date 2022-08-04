@@ -16,47 +16,28 @@ class RelayManager:
     def remove_relay(self, url: str):
         self.relays.pop(url)
 
-    def add_subscription(self, id: str, filters: Filters, relay: Relay=None):
-        if relay != None:
+    def add_subscription(self, id: str, filters: Filters):
+        for relay in self.relays.values():
             relay.add_subscription(id, filters)
-        else:
-            for relay in self.relays.values():
-                relay.add_subscription(id, filters)
 
-    def close_subscription(self, id: str, relay: Relay=None):
-        if relay != None:
+    def close_subscription(self, id: str):
+        for relay in self.relays.values():
             relay.close_subscription(id)
-        else:
-            for relay in self.relays.values():
-                relay.close_subscription(id)
 
-    def open_connection(self, relay: Relay=None, ssl_options: dict=None):
-        if relay != None:
+    def open_connections(self, ssl_options: dict=None):
+        for relay in self.relays.values():
             threading.Thread(
                 target=relay.connect,
                 args=(ssl_options,),
                 name=f"{relay.url}-thread"
             ).start()
-        else:
-            for relay in self.relays.values():
-                threading.Thread(
-                    target=relay.connect,
-                    args=(ssl_options,),
-                    name=f"{relay.url}-thread"
-                ).start()
 
-    def close_connection(self, relay: Relay=None):
-        if relay != None:
+    def close_connections(self):
+        for relay in self.relays.values():
             relay.close()
-        else:
-            for relay in self.relays.values():
-                relay.close()
 
-    def publish_message(self, message: str, relay: Relay=None):
-        if relay != None:
-            relay.publish(message)
-        else:
-            for relay in self.relays.values():
-                if relay.policy.should_write:
-                    relay.publish(message)
+    def publish_message(self, message: str):
+        for relay in self.relays.values():
+            if relay.policy.should_write:
+                relay.publish(message)
             
