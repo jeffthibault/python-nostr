@@ -20,7 +20,7 @@ class Event():
             created_at: int=int(time.time()), 
             kind: int=EventKind.TEXT_NOTE, 
             tags: "list[list[str]]"=[], 
-            id: int=None, 
+            id: str=None, 
             signature: str=None) -> None:
         self.id = id if id != None else sha256(Event.serialize(public_key, created_at, kind, tags, content)).hexdigest()
         self.public_key = public_key
