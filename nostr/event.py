@@ -22,6 +22,9 @@ class Event():
             tags: "list[list[str]]"=[], 
             id: str=None, 
             signature: str=None) -> None:
+        if not isinstance(content, str):
+            raise TypeError("Argument 'content' must be of type str")
+        
         self.id = id if id != None else sha256(Event.serialize(public_key, created_at, kind, tags, content)).hexdigest()
         self.public_key = public_key
         self.content = content
