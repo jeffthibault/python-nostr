@@ -5,8 +5,9 @@ from .message_type import RelayMessageType
 from .event import Event
 
 class EventMessage:
-    def __init__(self, event: Event, url: str) -> None:
+    def __init__(self, event: Event, subscription_id: str, url: str) -> None:
         self.event = event
+        self.subscription_id = subscription_id
         self.url = url
 
 class NoticeMessage:
@@ -52,11 +53,12 @@ class MessagePool:
         message_json = json.loads(message)
         message_type = message_json[0]
         if message_type == RelayMessageType.EVENT:
+            subscription_id = message_json[1]
             e = message_json[2]
             event = Event(e['pubkey'], e['content'], e['created_at'], e['kind'], e['tags'], e['id'], e['sig'])
             with self.lock:
                 if not event.id in self._unique_events:
-                    self.events.put(EventMessage(event, url))
+                    self.events.put(EventMessage(event, subscription_id, url))
                     self._unique_events.add(event.id)
         elif message_type == RelayMessageType.NOTICE:
             self.notices.put(NoticeMessage(message_json[1], url))
