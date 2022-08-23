@@ -62,7 +62,7 @@ from nostr.message_type import ClientMessageType
 from nostr.key import generate_private_key, get_public_key
 
 filters = Filters([Filter(authors=[<a nostr pubkey in hex>], kinds=[EventKind.TEXT_NOTE])])
-subscription_id = <a string to represent a subscription>
+subscription_id = <a string to identify a subscription>
 request = [ClientMessageType.REQUEST, subscription_id]
 request.extend(filters.to_json_array())
 
