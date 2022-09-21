@@ -85,13 +85,9 @@ relay_manager.close_connections()
 ```
 
 ## Installation
-1. Clone repository \
-```git clone https://github.com/jeffthibault/python-nostr.git```
-2. Install dependencies in repo \
-```python -m venv venv``` \
-```pip install -r requirements.txt```
-
-Note: If the pip install fails, you might need to install wheel. Try ```pip install wheel``` then ```pip install -r requirements.txt```
+```bash
+pip3 install -U git+https://github.com/jeffthibault/python-nostr.git
+```
 
 ## Dependencies
 - [websocket-client](https://github.com/websocket-client/websocket-client) for websocket operations
