@@ -107,4 +107,4 @@ class Relay:
             if not subscription.filters.match(event):
                 return False
 
-            return True
+        return True
