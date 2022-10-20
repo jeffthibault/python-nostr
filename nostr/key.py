@@ -23,6 +23,12 @@ def get_key_pair() -> tuple:
     public_key = private_key.pubkey.serialize().hex()
     return (private_key.serialize(), public_key[2:])
 
+def tweak_add_private_key(private_key: str, scalar: bytes) -> str:
+    sk = PrivateKey(bytes.fromhex(private_key))
+    tweaked_secret = sk.tweak_add(scalar)
+    new_sk = PrivateKey(tweaked_secret)
+    return new_sk.serialize()
+
 def compute_shared_secret(sender_private_key: str, receiver_public_key: str) -> str:
     public_key = PublicKey(bytes.fromhex("02" + receiver_public_key), True)
     return public_key.ecdh(bytes.fromhex(sender_private_key), copy_x).hex() 
@@ -54,6 +60,15 @@ def decrypt_message(encoded_message: str, shared_secret: str) -> str:
     unpadded_data = unpadder.update(decrypted_message) + unpadder.finalize()
 
     return unpadded_data.decode()
+
+def sign_message(hash: str, private_key: str) -> str:
+    sk = PrivateKey(bytes.fromhex(private_key))
+    sig = sk.schnorr_sign(bytes.fromhex(hash), None, raw=True)
+    return sig.hex()
+
+def verify_message(hash: str, sig: str, public_key: str) -> bool:
+    pk = PublicKey(bytes.fromhex("02" + public_key), True)
+    return pk.schnorr_verify(bytes.fromhex(hash), bytes.fromhex(sig), None, True)
 
 ffi = FFI()
 @ffi.callback("int (unsigned char *, const unsigned char *, const unsigned char *, void *)")
