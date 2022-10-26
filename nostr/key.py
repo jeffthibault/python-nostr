@@ -31,7 +31,7 @@ def tweak_add_private_key(private_key: str, scalar: bytes) -> str:
 
 def compute_shared_secret(sender_private_key: str, receiver_public_key: str) -> str:
     public_key = PublicKey(bytes.fromhex("02" + receiver_public_key), True)
-    return public_key.ecdh(bytes.fromhex(sender_private_key), copy_x).hex() 
+    return public_key.ecdh(bytes.fromhex(sender_private_key), hashfn=copy_x).hex() 
 
 def encrypt_message(content: str, shared_secret: str) -> str:
     iv = os.urandom(16)
