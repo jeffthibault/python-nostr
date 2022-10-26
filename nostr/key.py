@@ -4,6 +4,7 @@ from cffi import FFI
 from secp256k1 import PrivateKey, PublicKey
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
+from . import bech32
 
 def generate_private_key() -> str:
     private_key = PrivateKey()
@@ -22,6 +23,22 @@ def get_key_pair() -> tuple:
     private_key = PrivateKey()
     public_key = private_key.pubkey.serialize().hex()
     return (private_key.serialize(), public_key[2:])
+
+def bech32_encode_private_key(private_key: str) -> str:
+    converted_bits = bech32.convertbits(bytes.fromhex(private_key), 8, 5)
+    return bech32.bech32_encode("nsec", converted_bits, bech32.Encoding.BECH32)
+
+def bech32_decode_private_key(private_key_bech32: str) -> str:
+    data = bech32.bech32_decode(private_key_bech32)[1]
+    return bytes(bech32.convertbits(data, 5, 8, False)).hex()
+
+def bech32_encode_public_key(public_key: str) -> str:
+    converted_bits = bech32.convertbits(bytes.fromhex(public_key), 8, 5)
+    return bech32.bech32_encode("npub", converted_bits, bech32.Encoding.BECH32)
+
+def bech32_decode_public_key(public_key_bech32: str) -> str:
+    data = bech32.bech32_decode(public_key_bech32)[1]
+    return bytes(bech32.convertbits(data, 5, 8, False)).hex()
 
 def tweak_add_private_key(private_key: str, scalar: bytes) -> str:
     sk = PrivateKey(bytes.fromhex(private_key))
