@@ -4,10 +4,12 @@ A Python library for making [Nostr](https://github.com/nostr-protocol/nostr) cli
 ## Usage
 **Generate a key**
 ```python
-from nostr.key import generate_private_key, get_public_key
+from nostr.key import PrivateKey
 
-private_key = generate_private_key()
-public_key = get_public_key(private_key)
+private_key = PrivateKey()
+public_key = private_key.public_key
+print(f"Private key: {private_key.bech32()}")
+print(f"Public key: {public_key.bech32()}")
 ```
 **Connect to relays**
 ```python
@@ -32,7 +34,7 @@ import time
 from nostr.event import Event
 from nostr.relay_manager import RelayManager
 from nostr.message_type import ClientMessageType
-from nostr.key import generate_private_key, get_public_key
+from nostr.key import PrivateKey
 
 relay_manager = RelayManager()
 relay_manager.add_relay("wss://nostr-pub.wellorder.net")
@@ -40,11 +42,10 @@ relay_manager.add_relay("wss://relay.damus.io")
 relay_manager.open_connections({"cert_reqs": ssl.CERT_NONE}) # NOTE: This disables ssl certificate verification
 time.sleep(1.25) # allow the connections to open
 
-private_key = generate_private_key()
-public_key = get_public_key(private_key)
+private_key = PrivateKey()
 
-event = Event(public_key, "Hello Nostr")
-event.sign(private_key)
+event = Event(private_key.public_key.hex(), "Hello Nostr")
+event.sign(private_key.hex())
 
 message = json.dumps([ClientMessageType.EVENT, event.to_json_object()])
 relay_manager.publish_message(message)
@@ -59,7 +60,6 @@ from nostr.filter import Filter, Filters
 from nostr.event import Event, EventKind
 from nostr.relay_manager import RelayManager
 from nostr.message_type import ClientMessageType
-from nostr.key import generate_private_key, get_public_key
 
 filters = Filters([Filter(authors=[<a nostr pubkey in hex>], kinds=[EventKind.TEXT_NOTE])])
 subscription_id = <a string to identify a subscription>
@@ -85,13 +85,21 @@ relay_manager.close_connections()
 ```
 
 ## Installation
-1. Clone repository \
-```git clone https://github.com/jeffthibault/python-nostr.git```
-2. Install dependencies in repo \
-```python -m venv venv``` \
-```pip install -r requirements.txt```
+1. Clone repository
+```bash
+git clone https://github.com/jeffthibault/python-nostr.git
+```
+2. Install dependencies in repo
+```bash
+python -m venv venv
+pip install -r requirements.txt
+```
 
-Note: If the pip install fails, you might need to install wheel. Try ```pip install wheel``` then ```pip install -r requirements.txt```
+Note: If the pip install fails, you might need to install ```wheel```. Try the following:
+```bash
+pip install wheel
+pip install -r requirements.txt
+```
 
 ## Dependencies
 - [websocket-client](https://github.com/websocket-client/websocket-client) for websocket operations
