@@ -51,7 +51,7 @@ class Event():
     def verify(self) -> bool:
         pub_key = PublicKey(bytes.fromhex("02" + self.public_key), True) # add 02 for schnorr (bip340)
         event_id = Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
-        return pub_key.schnorr_verify(event_id, bytes.fromhex(self.signature), None, raw=True)
+        return pub_key.schnorr_verify(bytes.fromhex(event_id), bytes.fromhex(self.signature), None, raw=True)
 
     def to_json_object(self) -> dict:
         return {
