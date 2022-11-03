@@ -8,7 +8,7 @@ from . import bech32
 
 class PublicKey:
     def __init__(self, raw_bytes: bytes) -> None:
-        self.raw_bytes= raw_bytes
+        self.raw_bytes = raw_bytes
 
     def bech32(self) -> str:
         converted_bits = bech32.convertbits(self.raw_bytes, 8, 5)
@@ -18,7 +18,7 @@ class PublicKey:
         return self.raw_bytes.hex()
 
     def verify_signed_message_hash(self, hash: str, sig: str) -> bool:
-        pk = secp256k1.PublicKey(self.raw_bytes, True)
+        pk = secp256k1.PublicKey(b"\x02" + self.raw_bytes, True)
         return pk.schnorr_verify(bytes.fromhex(hash), bytes.fromhex(sig), None, True)
 
 class PrivateKey:
