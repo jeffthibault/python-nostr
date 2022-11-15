@@ -36,7 +36,7 @@ class Event():
     @staticmethod
     def serialize(public_key: str, created_at: int, kind: int, tags: "list[list[str]]", content: str) -> bytes:
         data = [0, public_key, created_at, kind, tags, content]
-        data_str = json.dumps(data, separators=(',', ':'))
+        data_str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
         return data_str.encode()
 
     @staticmethod
