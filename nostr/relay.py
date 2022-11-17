@@ -38,7 +38,7 @@ class Relay:
             on_close=self._on_close)
 
     def connect(self, ssl_options: dict=None):
-        self.ws.run_forever(sslopt=ssl_options)
+        self.ws.run_forever(sslopt=ssl_options, ping_interval=60, ping_timeout=10, ping_payload="2")
 
     def close(self):
         self.ws.close()
@@ -75,7 +75,13 @@ class Relay:
     def _on_message(self, class_obj, message: str):
         if self._is_valid_message(message):
             self.message_pool.add_message(message, self.url)
-    
+
+    def _on_ping(self, class_obj, message):
+        pass
+
+    def _on_pong(self, class_obj, message):
+        pass
+
     def _on_error(self, class_obj, error):
         pass
 
