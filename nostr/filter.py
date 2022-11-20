@@ -38,7 +38,7 @@ class Filter:
                 if f_tag[1:] not in e_tag_identifiers:
                     return False
                 for e_tag in event.tags:
-                    if e_tag[1] not in f_tag_values:
+                    if e_tag[0] == f_tag[1:] and e_tag[1] not in f_tag_values:
                         return False
         
         return True
