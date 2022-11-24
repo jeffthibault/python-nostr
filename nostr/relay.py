@@ -1,4 +1,5 @@
 import json
+import time
 from threading import Lock
 
 from websocket import WebSocketApp, WebSocketConnectionClosedException
@@ -41,7 +42,10 @@ class Relay:
             on_open=self._on_open,
             on_message=self._on_message,
             on_error=self._on_error,
-            on_close=self._on_close)
+            on_close=self._on_close,
+            on_ping=self._on_ping,
+            on_pong=self._on_pong)
+        self.last_pong = None
 
     def connect(self, ssl_options: dict=None):
         self.ws.run_forever(sslopt=ssl_options, ping_interval=60, ping_timeout=10, ping_payload="2")
@@ -76,7 +80,7 @@ class Relay:
         }
 
     def _on_open(self, class_obj):
-        pass
+        self.last_pong = time.time()
 
     def _on_close(self, class_obj, status_code, message):
         pass
@@ -89,7 +93,7 @@ class Relay:
         pass
 
     def _on_pong(self, class_obj, message):
-        pass
+        self.last_pong = time.time()
 
     def _on_error(self, class_obj, error):
         pass

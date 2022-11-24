@@ -40,4 +40,11 @@ class RelayManager:
         for relay in self.relays.values():
             if relay.policy.should_write:
                 relay.publish(message)
+
+    def get_connection_status(self):
+        out = []
+        for relay in self.relays.values():
+            out.append([relay.url, relay.last_pong])
+        return out
+
             
