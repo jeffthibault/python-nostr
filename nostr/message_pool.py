@@ -57,9 +57,10 @@ class MessagePool:
             e = message_json[2]
             event = Event(e['pubkey'], e['content'], e['created_at'], e['kind'], e['tags'], e['id'], e['sig'])
             with self.lock:
-                if not event.id in self._unique_events:
+                uid = subscription_id+event.id
+                if not uid in self._unique_events:
                     self.events.put(EventMessage(event, subscription_id, url))
-                    self._unique_events.add(event.id)
+                    self._unique_events.add(uid)
         elif message_type == RelayMessageType.NOTICE:
             self.notices.put(NoticeMessage(message_json[1], url))
         elif message_type == RelayMessageType.END_OF_STORED_EVENTS:
