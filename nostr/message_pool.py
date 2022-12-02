@@ -20,11 +20,18 @@ class EndOfStoredEventsMessage:
         self.subscription_id = subscription_id
         self.url = url
 
+class OkMessage:
+    def __init__(self, content: str, url: str) -> None:
+        self.content = content
+        self.url = url
+
+
 class MessagePool:
     def __init__(self) -> None:
         self.events: Queue[EventMessage] = Queue()
         self.notices: Queue[NoticeMessage] = Queue()
         self.eose_notices: Queue[EndOfStoredEventsMessage] = Queue()
+        self.ok_notices: Queue[OkMessage] = Queue()
         self._unique_events: set = set()
         self.lock: Lock = Lock()
     
@@ -40,6 +47,9 @@ class MessagePool:
     def get_eose_notice(self):
         return self.eose_notices.get()
 
+    def get_ok_notice(self):
+        return self.ok_notices.get()
+
     def has_events(self):
         return self.events.qsize() > 0
 
@@ -48,6 +58,9 @@ class MessagePool:
 
     def has_eose_notices(self):
         return self.eose_notices.qsize() > 0
+
+    def has_ok_notices(self):
+        return self.ok_notices.qsize() > 0
 
     def _process_message(self, message: str, url: str):
         message_json = json.loads(message)
@@ -65,5 +78,7 @@ class MessagePool:
             self.notices.put(NoticeMessage(message_json[1], url))
         elif message_type == RelayMessageType.END_OF_STORED_EVENTS:
             self.eose_notices.put(EndOfStoredEventsMessage(message_json[1], url))
+        elif message_type == RelayMessageType.OK:
+            self.eose_notices.put(OkMessage(message_json[1], url))
 
 
