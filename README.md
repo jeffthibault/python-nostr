@@ -14,6 +14,7 @@ print(f"Public key: {public_key.bech32()}")
 **Connect to relays**
 ```python
 import time
+import ssl
 from nostr.relay_manager import RelayManager
 
 relay_manager = RelayManager()
@@ -31,6 +32,7 @@ relay_manager.close_connections()
 **Publish to relays**
 ```python
 import time
+import ssl
 from nostr.event import Event
 from nostr.relay_manager import RelayManager
 from nostr.message_type import ClientMessageType
@@ -56,6 +58,7 @@ relay_manager.close_connections()
 **Receive events from relays**
 ```python
 import time
+import ssl
 from nostr.filter import Filter, Filters
 from nostr.event import Event, EventKind
 from nostr.relay_manager import RelayManager
