@@ -48,10 +48,10 @@ class NostrClient:
         pk = bytes.fromhex(privatekey_hex) if privatekey_hex else None
         self.private_key = PrivateKey(pk)
         self.public_key = self.private_key.public_key
-        print(
-            f"Nostr private key: {self.private_key.hex()} ({self.private_key.bech32()})"
-        )
-        print(f"Nostr public key: {self.public_key.hex()} ({self.public_key.bech32()})")
+        # print(
+        #     f"Nostr private key: {self.private_key.hex()} ({self.private_key.bech32()})"
+        # )
+        # print(f"Nostr public key: {self.public_key.hex()} ({self.public_key.bech32()})")
 
     def post(self, message: str):
         event = Event(self.public_key.hex(), message, kind=EventKind.TEXT_NOTE)
