@@ -29,17 +29,18 @@ class NostrClient:
     private_key: PrivateKey
     public_key: PublicKey
 
-    def __init__(self, privatekey_hex: str = "", relays: List[str] = []):
+    def __init__(self, privatekey_hex: str = "", relays: List[str] = [], connect=True):
         self.generate_keys(privatekey_hex)
 
         if len(relays):
             self.relays = relays
 
-        for relay in self.relays:
-            self.relay_manager.add_relay(relay)
-        self.relay_manager.open_connections(
-            {"cert_reqs": ssl.CERT_NONE}
-        )  # NOTE: This disables ssl certificate verification
+        if connect:
+            for relay in self.relays:
+                self.relay_manager.add_relay(relay)
+            self.relay_manager.open_connections(
+                {"cert_reqs": ssl.CERT_NONE}
+            )  # NOTE: This disables ssl certificate verification
 
     def close(self):
         self.relay_manager.close_connections()
