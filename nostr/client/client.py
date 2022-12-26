@@ -3,17 +3,17 @@ import ssl
 import time
 import json
 import os
-import base64 
+import base64
 
-from nostr.event import Event
-from nostr.relay_manager import RelayManager
-from nostr.message_type import ClientMessageType
-from nostr.key import PrivateKey, PublicKey
+from ..event import Event
+from ..relay_manager import RelayManager
+from ..message_type import ClientMessageType
+from ..key import PrivateKey, PublicKey
 
-from nostr.filter import Filter, Filters
-from nostr.event import Event, EventKind
-from nostr.relay_manager import RelayManager
-from nostr.message_type import ClientMessageType
+from ..filter import Filter, Filters
+from ..event import Event, EventKind
+from ..relay_manager import RelayManager
+from ..message_type import ClientMessageType
 
 # from aes import AESCipher
 from . import cbc
@@ -84,9 +84,7 @@ class NostrClient:
 
     def dm(self, message: str, to_pubkey: PublicKey):
 
-        shared_secret = self.private_key.compute_shared_secret(
-            to_pubkey.hex()
-        )
+        shared_secret = self.private_key.compute_shared_secret(to_pubkey.hex())
 
         # print("shared secret: ", shared_secret.hex())
         # print("plain text:", message)
@@ -94,7 +92,6 @@ class NostrClient:
         iv, enc_text = aes.encrypt(message)
         # print("encrypt iv: ", iv)
         content = f"{base64.b64encode(enc_text).decode('utf-8')}?iv={base64.b64encode(iv).decode('utf-8')}"
-
 
         event = Event(
             self.public_key.hex(),
@@ -151,7 +148,7 @@ class NostrClient:
                     except:
                         pass
                 # else:
-                    # print(f"\nFrom {event_msg.event.public_key[:5]}...: {event_msg.event.content}")
+                # print(f"\nFrom {event_msg.event.public_key[:5]}...: {event_msg.event.content}")
                 break
             time.sleep(0.1)
 
@@ -162,4 +159,3 @@ class NostrClient:
                 print(event_msg.event.content)
                 break
             time.sleep(0.1)
-
