@@ -1,2 +1,3 @@
 venv/
-nostr/__pycache__/
+__pycache__/
+nostr.egg-info/
