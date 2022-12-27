@@ -31,6 +31,13 @@ class PrivateKey:
         sk = secp256k1.PrivateKey(self.raw_secret)
         self.public_key = PublicKey(sk.pubkey.serialize()[1:])
 
+    @classmethod
+    def from_nsec(cls, nsec: str):
+        """ Load a PrivateKey from its bech32/nsec form """
+        hrp, data, spec = bech32.bech32_decode(nsec)
+        raw_secret = bech32.convertbits(data, 5, 8)[:-1]
+        return cls(bytes(raw_secret))
+
     def bech32(self) -> str:
         converted_bits = bech32.convertbits(self.raw_secret, 8, 5)
         return bech32.bech32_encode("nsec", converted_bits, bech32.Encoding.BECH32)
@@ -78,6 +85,10 @@ class PrivateKey:
         sk = secp256k1.PrivateKey(self.raw_secret)
         sig = sk.schnorr_sign(hash, None, raw=True)
         return sig.hex()
+    
+    def __eq__(self, other):
+        return self.raw_secret == other.raw_secret
+
 
 ffi = FFI()
 @ffi.callback("int (unsigned char *, const unsigned char *, const unsigned char *, void *)")
