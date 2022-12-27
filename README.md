@@ -98,7 +98,7 @@ git clone https://github.com/jeffthibault/python-nostr.git
 2. Install dependencies in repo
 ```bash
 python -m venv venv
-pip install -r requirements.txt
+venv/bin/python -m pip install -r requirements.txt
 ```
 
 Note: If the pip install fails, you might need to install ```wheel```. Try the following:
