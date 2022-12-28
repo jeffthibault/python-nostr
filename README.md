@@ -13,6 +13,8 @@ print(f"Public key: {public_key.bech32()}")
 ```
 **Connect to relays**
 ```python
+import json
+import ssl
 import time
 from nostr.relay_manager import RelayManager
 
@@ -30,6 +32,8 @@ relay_manager.close_connections()
 ```
 **Publish to relays**
 ```python
+import json 
+import ssl
 import time
 from nostr.event import Event
 from nostr.relay_manager import RelayManager
@@ -55,6 +59,8 @@ relay_manager.close_connections()
 ```
 **Receive events from relays**
 ```python
+import json
+import ssl
 import time
 from nostr.filter import Filter, Filters
 from nostr.event import Event, EventKind
@@ -92,7 +98,7 @@ git clone https://github.com/jeffthibault/python-nostr.git
 2. Install dependencies in repo
 ```bash
 python -m venv venv
-pip install -r requirements.txt
+venv/bin/python -m pip install -r requirements.txt
 ```
 
 Note: If the pip install fails, you might need to install ```wheel```. Try the following:
@@ -108,10 +114,13 @@ pip install -r requirements.txt
 
 Note: I wrote this with Python 3.9.5.
 
+## Test Suite
+See the [Test Suite README](test/README.md)
+
 ## Disclaimer
 - This library is in very early development and still a WIP.
 - It might have some bugs.
-- I need to add tests.
+- I need to add more tests.
 - I will try to publish this as a [PyPI](https://pypi.org/) package at some point.
 
 Please feel free to add issues, add PRs, or provide any feedback!

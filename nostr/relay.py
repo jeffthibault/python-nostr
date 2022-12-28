@@ -99,6 +99,7 @@ class Relay:
         pass
 
     def _is_valid_message(self, message: str) -> bool:
+        message = message.strip("\n")
         if not message or message[0] != '[' or message[-1] != ']':
             return False
 
