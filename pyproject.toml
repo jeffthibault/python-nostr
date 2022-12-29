@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nostr"
+authors = [
+  { name="Jeff Thibault", email="jdthibault2@gmail.com" },
+]
+description = "A Python library for making Nostr clients"
+urls = { Homepage = "https://github.com/jeffthibault/python-nostr" }
+readme = "README.md"
+requires-python = ">3.6.0"
+dependencies = [
+    "cffi>=1.15.0",
+    "cryptography>=37.0.4",
+    "pycparser>=2.21",
+    "secp256k1>=0.14.0",
+    "websocket-client>=1.3.3",
+]
+license = {file = "LICENSE"}
+classifiers=[
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: MacOS :: MacOS X',
+]
+dynamic=["version"]
+
+[tool.setuptools_scm]
+write_to = "nostr/_version.py"
+
+[project.optional-dependencies]
+test = [
+  "pytest >=7.2.0",
+  "pytest-cov[all]"
+]
