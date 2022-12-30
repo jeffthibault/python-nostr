@@ -1,4 +1,4 @@
-from nostr.key import PrivateKey
+from nostr.key import PrivateKey, PublicKey
 
 
 def test_eq_true():
@@ -21,3 +21,9 @@ def test_from_nsec():
     pk1 = PrivateKey()
     pk2 = PrivateKey.from_nsec(pk1.bech32())
     assert pk1.raw_secret == pk2.raw_secret
+
+def test_from_npub():
+    """ PublicKey.from_npub should yield the source's raw_bytes """
+    pk1 = PrivateKey()
+    pk2 = PublicKey.from_npub(pk1.public_key.bech32())
+    assert pk1.public_key.raw_bytes == pk2.raw_bytes
