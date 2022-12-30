@@ -29,8 +29,12 @@ dynamic=["version"]
 [tool.setuptools_scm]
 write_to = "nostr/_version.py"
 
-[project.optional-dependencies]
-test = [
-  "pytest >=7.2.0",
-  "pytest-cov[all]"
-]
+[tool.tox]
+legacy_tox_ini = """
+[testenv]
+deps =
+    pytest
+    pytest-cov[all]
+commands =
+    pytest
+"""
