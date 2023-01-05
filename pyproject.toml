@@ -1,12 +1,14 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm", "build"]
+requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "nostr"
-
-description = "A Python library for making Nostr clients."
-urls = {Homepage = "https://github.com/jeffthibault/python-nostr"}
+authors = [
+  { name="Jeff Thibault", email="jdthibault2@gmail.com" },
+]
+description = "A Python library for making Nostr clients"
+urls = { Homepage = "https://github.com/jeffthibault/python-nostr" }
 readme = "README.md"
 requires-python = ">3.6.0"
 dependencies = [
