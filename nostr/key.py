@@ -4,7 +4,11 @@ import secp256k1
 from cffi import FFI
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
+from hashlib import sha256
+
+from nostr.delegation import Delegation
 from . import bech32
+
 
 class PublicKey:
     def __init__(self, raw_bytes: bytes) -> None:
@@ -93,6 +97,9 @@ class PrivateKey:
         sk = secp256k1.PrivateKey(self.raw_secret)
         sig = sk.schnorr_sign(hash, None, raw=True)
         return sig.hex()
+    
+    def sign_delegation(self, delegation: Delegation) -> None:
+        delegation.signature = self.sign_message_hash(sha256(delegation.delegation_token.encode()).digest())
 
     def __eq__(self, other):
         return self.raw_secret == other.raw_secret

@@ -4,6 +4,7 @@ from enum import IntEnum
 from secp256k1 import PrivateKey, PublicKey
 from hashlib import sha256
 
+
 class EventKind(IntEnum):
     SET_METADATA = 0
     TEXT_NOTE = 1
@@ -11,6 +12,7 @@ class EventKind(IntEnum):
     CONTACTS = 3
     ENCRYPTED_DIRECT_MESSAGE = 4
     DELETE = 5
+
 
 class Event():
     def __init__(
