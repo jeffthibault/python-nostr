@@ -91,26 +91,9 @@ relay_manager.close_connections()
 ```
 
 ## Installation
-1. Clone repository
 ```bash
-git clone https://github.com/jeffthibault/python-nostr.git
+pip install nostr
 ```
-2. Install dependencies in repo
-```bash
-python -m venv venv
-pip install -r requirements.txt
-```
-
-Note: If the pip install fails, you might need to install ```wheel```. Try the following:
-```bash
-pip install wheel
-pip install -r requirements.txt
-```
-
-## Dependencies
-- [websocket-client](https://github.com/websocket-client/websocket-client) for websocket operations
-- [secp256k1](https://github.com/rustyrussell/secp256k1-py) for key generation, signing, and verifying
-- [cryptography](https://github.com/pyca/cryptography) for encrypting and decrypting direct messages
 
 Note: I wrote this with Python 3.9.5.
 
@@ -118,9 +101,8 @@ Note: I wrote this with Python 3.9.5.
 See the [Test Suite README](test/README.md)
 
 ## Disclaimer
-- This library is in very early development and still a WIP.
+- This library is in very early development.
 - It might have some bugs.
 - I need to add more tests.
-- I will try to publish this as a [PyPI](https://pypi.org/) package at some point.
 
 Please feel free to add issues, add PRs, or provide any feedback!
