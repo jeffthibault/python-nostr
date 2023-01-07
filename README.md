@@ -107,7 +107,7 @@ delegation = Delegation(
     delegator_pubkey=identity_pk.public_key.hex(),
     delegatee_pubkey=delegatee_pk.public_key.hex(),
     event_kind=EventKind.TEXT_NOTE,
-    duration_secs=30*24*60
+    duration_secs=30*24*60*60
 )
 
 identity_pk.sign_delegation(delegation)
