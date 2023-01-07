@@ -122,6 +122,11 @@ event.sign(delegatee_pk.hex())
 # ...normal broadcast steps...
 ```
 
+The resulting delegation tag can be stored as plaintext and reused as-is by the "delegatee" PK until the delegation token expires. There is no way to revoke a signed delegation, so current best practice is to keep the expiration time relatively short.
+
+Hopefully clients will include an optional field to store the delegation tag. That would allow the "delegatee" PK to seamlessly post messages on the "identity" key's behalf, while the "identity" key stays safely offline in cold storage.
+
+
 ## Installation
 ```bash
 pip install nostr
