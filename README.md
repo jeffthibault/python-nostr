@@ -90,6 +90,43 @@ while relay_manager.message_pool.has_events():
 relay_manager.close_connections()
 ```
 
+**NIP-26 delegation**
+```python
+from nostr.delegation import Delegation
+from nostr.event import EventKind, Event
+from nostr.key import PrivateKey
+
+# Load your "identity" PK that you'd like to keep safely offline
+identity_pk = PrivateKey.from_nsec("nsec1...")
+
+# Create a new, disposable PK as the "delegatee" that can be "hot" in a Nostr client
+delegatee_pk = PrivateKey()
+
+# the "identity" PK will authorize "delegatee" to sign TEXT_NOTEs on its behalf for the next month
+delegation = Delegation(
+    delegator_pubkey=identity_pk.public_key.hex(),
+    delegatee_pubkey=delegatee_pk.public_key.hex(),
+    event_kind=EventKind.TEXT_NOTE,
+    duration_secs=30*24*60*60
+)
+
+identity_pk.sign_delegation(delegation)
+
+event = Event(
+    delegatee_pk.public_key.hex(),
+    "Hello, NIP-26!",
+    tags=[delegation.get_tag()],
+)
+event.sign(delegatee_pk.hex())
+
+# ...normal broadcast steps...
+```
+
+The resulting delegation tag can be stored as plaintext and reused as-is by the "delegatee" PK until the delegation token expires. There is no way to revoke a signed delegation, so current best practice is to keep the expiration time relatively short.
+
+Hopefully clients will include an optional field to store the delegation tag. That would allow the "delegatee" PK to seamlessly post messages on the "identity" key's behalf, while the "identity" key stays safely offline in cold storage.
+
+
 ## Installation
 ```bash
 pip install nostr
