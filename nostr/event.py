@@ -4,6 +4,8 @@ from enum import IntEnum
 from secp256k1 import PrivateKey, PublicKey
 from hashlib import sha256
 
+from nostr.message_type import ClientMessageType
+
 
 class EventKind(IntEnum):
     SET_METADATA = 0
@@ -55,13 +57,18 @@ class Event():
         event_id = Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
         return pub_key.schnorr_verify(bytes.fromhex(event_id), bytes.fromhex(self.signature), None, raw=True)
 
-    def to_json_object(self) -> dict:
-        return {
-            "id": self.id,
-            "pubkey": self.public_key,
-            "created_at": self.created_at,
-            "kind": self.kind,
-            "tags": self.tags,
-            "content": self.content,
-            "sig": self.signature
-        }
+    def to_message(self) -> str:
+        return json.dumps(
+            [
+                ClientMessageType.EVENT,
+                {
+                    "id": self.id,
+                    "pubkey": self.public_key,
+                    "created_at": self.created_at,
+                    "kind": self.kind,
+                    "tags": self.tags,
+                    "content": self.content,
+                    "sig": self.signature
+                }
+            ]
+        )

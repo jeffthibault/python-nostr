@@ -1,7 +1,18 @@
+import json
 import threading
+
+from .event import Event
 from .filter import Filters
 from .message_pool import MessagePool
+from .message_type import ClientMessageType
 from .relay import Relay, RelayPolicy
+
+
+
+class RelayException(Exception):
+    pass
+
+
 
 class RelayManager:
     def __init__(self) -> None:
@@ -40,4 +51,13 @@ class RelayManager:
         for relay in self.relays.values():
             if relay.policy.should_write:
                 relay.publish(message)
-            
+
+    def publish_event(self, event: Event):
+        """ Verifies that the Event is publishable before submitting it to relays """
+        if event.signature is None:
+            raise RelayException(f"Could not publish {event.id}: must be signed")
+
+        if not event.verify():
+            raise RelayException(f"Could not publish {event.id}: failed to verify signature {event.signature}")
+
+        self.publish_message(event.to_message())
