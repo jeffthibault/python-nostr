@@ -6,6 +6,10 @@ from typing import List
 from secp256k1 import PrivateKey, PublicKey
 from hashlib import sha256
 
+from nostr.message_type import ClientMessageType
+
+
+
 class EventKind(IntEnum):
     SET_METADATA = 0
     TEXT_NOTE = 1
@@ -13,6 +17,7 @@ class EventKind(IntEnum):
     CONTACTS = 3
     ENCRYPTED_DIRECT_MESSAGE = 4
     DELETE = 5
+
 
 
 @dataclass
@@ -57,16 +62,21 @@ class Event:
         return pub_key.schnorr_verify(bytes.fromhex(self.id), bytes.fromhex(self.signature), None, raw=True)
 
 
-    def to_json_object(self) -> dict:
-        return {
-            "id": self.id,
-            "pubkey": self.public_key,
-            "created_at": self.created_at,
-            "kind": self.kind,
-            "tags": self.tags,
-            "content": self.content,
-            "sig": self.signature
-        }
+    def to_message(self) -> str:
+        return json.dumps(
+            [
+                ClientMessageType.EVENT,
+                {
+                    "id": self.id,
+                    "pubkey": self.public_key,
+                    "created_at": self.created_at,
+                    "kind": self.kind,
+                    "tags": self.tags,
+                    "content": self.content,
+                    "sig": self.signature
+                }
+            ]
+        )
 
 
 
@@ -76,11 +86,12 @@ class EncryptedDirectMessage(Event):
     cleartext_message: str = None
     reference_event_id: str = None
 
+
     def __post_init__(self):
         self.kind = EventKind.ENCRYPTED_DIRECT_MESSAGE
         super().__post_init__()
 
-        # Must specify the DM recipient's pubkey hex
+        # Must specify the DM recipient's pubkey hex in a tag
         self.tags.append(['p', self.recipient_pubkey])
 
         # Optionally specify a reference event (DM) this is a reply to
