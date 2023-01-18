@@ -7,7 +7,7 @@ from nostr.relay_manager import RelayManager
 from nostr.message_type import ClientMessageType
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 filters = Filters([Filter(authors=[ < a nostr pubkey in hex >], kinds=[EventKind.TEXT_NOTE])])
@@ -16,8 +16,8 @@ request = [ClientMessageType.REQUEST, subscription_id]
 request.extend(filters.to_json_array())
 
 relay_manager = RelayManager()
-relay_manager.add_relay("")
-relay_manager.add_relay("")
+relay_manager.add_relay("wss://nostr.zebedee.cloud")
+relay_manager.add_relay("wss://nostr.bitcoiner.social")
 relay_manager.add_subscription(subscription_id, filters)
 relay_manager.open_connections({"cert_reqs": ssl.CERT_NONE})  # NOTE: This disables ssl certificate verification
 logging.info(f"Connections opened: ")  # add more logging info
