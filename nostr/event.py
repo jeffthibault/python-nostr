@@ -29,13 +29,13 @@ class Event():
         if not isinstance(content, str):
             raise TypeError("Argument 'content' must be of type str")
         
-        self.id = id if not id is None else Event.compute_id(public_key, created_at, kind, tags, content)
         self.public_key = public_key
         self.content = content
         self.created_at = created_at or int(time.time())
         self.kind = kind
         self.tags = tags
         self.signature = signature
+        self.id = id or Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
 
     @staticmethod
     def serialize(public_key: str, created_at: int, kind: int, tags: "list[list[str]]", content: str) -> bytes:
