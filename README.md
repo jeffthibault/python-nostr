@@ -49,7 +49,7 @@ time.sleep(1.25) # allow the connections to open
 private_key = PrivateKey()
 
 event = Event(private_key.public_key.hex(), "Hello Nostr")
-event.sign(private_key.hex())
+private_key.sign_event(event)
 
 relay_manager.publish_event(event)
 time.sleep(1) # allow the messages to send
@@ -116,7 +116,7 @@ event = Event(
     "Hello, NIP-26!",
     tags=[delegation.get_tag()],
 )
-event.sign(delegatee_pk.hex())
+delegatee_pk.sign_event(event)
 
 # ...normal broadcast steps...
 ```
