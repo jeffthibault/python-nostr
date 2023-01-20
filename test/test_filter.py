@@ -65,9 +65,9 @@ def events(pk1, pk2) -> List[Event]:
 
 class TestFilter:
     def test_match_by_id(self, pk1: PrivateKey, pk2: PrivateKey, events: List[Event]):
-        """ should properly match Events by id """
+        """ should properly match Events by event_id """
         filter = Filter(
-            ids=[events[0].id],
+            event_ids=[events[0].id],
         )
         assert filter.matches(events[0])
         assert filter.matches(events[1]) is False
@@ -77,7 +77,7 @@ class TestFilter:
 
         # Test multiple Event.id entries
         filter = Filter(
-            ids=[events[1].id, events[2].id],
+            event_ids=[events[1].id, events[2].id],
         )
         assert filter.matches(events[0]) is False
         assert filter.matches(events[1])
@@ -151,7 +151,27 @@ class TestFilter:
         assert filter.matches(events[2]) is False
         assert filter.matches(events[3]) is False
         assert filter.matches(events[4])
-    
+
+
+    def test_match_by_arbitrary_tag(self, pk1: PrivateKey, pk2: PrivateKey, events: List[Event]):
+        """ should properly match Events by NIP-12 arbitrary single-letter tags """
+        filter = Filter()
+        filter.add_arbitrary_tag('x', ["oranges"])
+
+        # None of our Events match
+        assert filter.matches(events[0]) is False
+        assert filter.matches(events[1]) is False
+        assert filter.matches(events[2]) is False
+        assert filter.matches(events[3]) is False
+        assert filter.matches(events[4]) is False
+
+        event = Event(
+            public_key=pk1.public_key.hex(),
+            content="Additional event to test with",
+            tags=[['x', "apples", "oranges", "bananas"]]
+        )
+        assert filter.matches(event)
+
 
     def test_match_by_authors_and_kinds(self, pk1: PrivateKey, pk2: PrivateKey, events: List[Event]):
         """ should properly match Events by authors AND kinds """
