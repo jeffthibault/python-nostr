@@ -1,3 +1,4 @@
+import pytest
 import json
 from nostr.filter import Filter, Filters
 from nostr.message_type import ClientMessageType
@@ -9,7 +10,13 @@ def test_subscription_id():
         check that subscription contents dump to JSON and load
         back to Python with expected types
     """
-    subscription = Subscription(id=123, filters=Filters([Filter()]))
+    filters = Filters([Filter()])
+    id = 123
+    
+    with pytest.raises(TypeError) as e:
+        subscription = Subscription(id=id, filters=filters)
+    
+    subscription = Subscription(id=str(id), filters=filters)
     request = [ClientMessageType.REQUEST, subscription.id]
     request.extend(subscription.filters.to_json_array())
     message = json.dumps(request)
