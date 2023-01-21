@@ -1,7 +1,7 @@
 from .filter import Filters
 
 class Subscription:
-    def __init__(self, id: str, filters: Filters=None) -> None:
+    def __init__(self, id: str, filters: Filters) -> None:
         self.id = str(id)
         self.filters = filters
 
