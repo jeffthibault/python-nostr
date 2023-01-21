@@ -41,17 +41,19 @@ class Filter:
 
         self.tags = {}
         if self.event_refs:
-            self.tags["#e"] = self.event_refs
+            self.add_arbitrary_tag('e', self.event_refs)
         if self.pubkey_refs:
-            self.tags["#p"] = self.pubkey_refs
+            self.add_arbitrary_tag('p', self.pubkey_refs)
 
 
-    def add_arbitrary_tag(self, tag_letter: str, values: list):
-        """ NIP-12: Filter on any arbitrary single-letter tag """
-        if len(tag_letter) != 1 or not tag_letter.isalpha:
-            raise Exception("NIP-12 only supports single-letter arbitrary tags")
-        
-        self.tags[f"#{tag_letter}"] = values
+    def add_arbitrary_tag(self, tag: str, values: list):
+        """
+            Filter on any arbitrary tag with explicit handling for NIP-01 and NIP-12
+            single-letter tags.
+        """
+         # NIP-01 'e' and 'p' tags and any NIP-12 single-letter tags must be prefixed with "#"
+        tag_key = tag if len(tag) > 1 else f"#{tag}"
+        self.tags[tag_key] = values
 
 
     def matches(self, event: Event) -> bool:
@@ -69,21 +71,25 @@ class Filter:
             return False
 
         if self.tags:
-            for target_tag, target_values in self.tags.items():
-                target_tag = target_tag[1]  # Just use the single-letter; omit the "#"
-                print(f"target_tag: {target_tag}")
-                if target_tag not in [tag[0] for tag in event.tags]:
-                    # Event doesn't have one of our filter target tags
-                    return False
+            e_tag_identifiers = set([e_tag[0] for e_tag in event.tags])
+            for f_tag, f_tag_values in self.tags.items():
+                # Omit any NIP-01 or NIP-12 "#" chars on single-letter tags
+                f_tag = f_tag.replace("#", "")
 
-                # Event does have the target tag, but does it match all target values
-                for tag_list in event.tags:
-                    # ['x', "val1", "val2", "val3", ...]
-                    print(f"tag_list: {tag_list}")
-                    if tag_list[0] == target_tag:
-                        for target_val in target_values:
-                            if target_val not in tag_list[1:]:
-                                return False
+                if f_tag not in e_tag_identifiers:
+                    # Event is missing a tag type that we're looking for
+                    return False
+                
+                # Multiple f_tag_values are treated as OR search; Event needs to match at least one.
+                # Note that an Event could have multiple entries of the same tag type (e.g. a reply
+                # to multiple people) so we have to check all of them.
+                match_found = False
+                for e_tag in event.tags:
+                    if e_tag[0] == f_tag and e_tag[1] in f_tag_values:
+                        match_found = True
+                        break
+                if not match_found:
+                    return False
 
         return True
 
