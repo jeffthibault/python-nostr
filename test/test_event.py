@@ -3,8 +3,9 @@ from nostr.key import PrivateKey
 import time
 
 def test_event_default_time():
-    """ensure created_at default value reflects the time
-    at Event object instantiation 
+    """
+        ensure created_at default value reflects the time at Event object instantiation
+        see: https://github.com/jeffthibault/python-nostr/issues/23
     """
     public_key = PrivateKey().public_key.hex()
     event1 = Event(public_key=public_key, content='test event')
