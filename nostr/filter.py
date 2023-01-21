@@ -80,9 +80,10 @@ class Filter:
                     # Event is missing a tag type that we're looking for
                     return False
                 
-                # Multiple f_tag_values are treated as OR search; Event needs to match at least one.
-                # Note that an Event could have multiple entries of the same tag type (e.g. a reply
-                # to multiple people) so we have to check all of them.
+                # Multiple values within f_tag_values are treated as OR search; an Event
+                # needs to match only one.
+                # Note: an Event could have multiple entries of the same tag type
+                # (e.g. a reply to multiple people) so we have to check all of them.
                 match_found = False
                 for e_tag in event.tags:
                     if e_tag[0] == f_tag and e_tag[1] in f_tag_values:
