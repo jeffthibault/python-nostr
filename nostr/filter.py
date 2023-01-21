@@ -96,7 +96,7 @@ class Filter:
 
     def to_json_object(self) -> dict:
         res = {}
-        if self.ids is not None:
+        if self.event_ids is not None:
             res["ids"] = self.event_ids
         if self.kinds is not None:   
             res["kinds"] = self.kinds

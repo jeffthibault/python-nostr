@@ -211,8 +211,8 @@ class TestFilter:
         assert filter.matches(event)
 
 
-    def test_match_by_arbitrary_multiletter_tag(self):
-        """ should match any arbitrary multiletter tag """
+    def test_match_by_arbitrary_multi_letter_tag(self):
+        """ should match any arbitrary multi-letter tag """
         filter = Filter()
         filter.add_arbitrary_tag('favorites', ["bitcoin"])
 
@@ -246,7 +246,6 @@ class TestFilter:
 
         event.tags.append(['foo', "bar"])
         assert filter.matches(event)
-
 
 
     def test_match_by_delegation_tag(self):
@@ -369,6 +368,35 @@ class TestFilter:
         # Should not match anything else
         for event in self.pk1_thread[:1] + self.pk2_thread + self.pk1_pk2_dms[1:]:
             assert filter.matches(event) is False
+
+
+    def test_event_refs_json(self):
+        """ should insert event_refs as "#e" in json """
+        filter = Filter(event_refs=["some_event_id"])
+        assert "#e" in filter.to_json_object().keys()
+        assert "e" not in filter.to_json_object().keys()
+
+
+    def test_pubkey_refs_json(self):
+        """ should insert pubkey_refs as "#p" in json """
+        filter = Filter(pubkey_refs=["some_pubkey"])
+        assert "#p" in filter.to_json_object().keys()
+        assert "p" not in filter.to_json_object().keys()
+
+
+    def test_arbitrary_single_letter_json(self):
+        """ should prefix NIP-12 arbitrary single-letter tags with "#" in json """
+        filter = Filter()
+        filter.add_arbitrary_tag('x', ["oranges"])
+        assert "#x" in filter.to_json_object().keys()
+        assert "x" not in filter.to_json_object().keys()
+
+
+    def test_arbitrary_multi_letter_json(self):
+        """ should include arbitrary multi-letter tags as-is in json """
+        filter = Filter()
+        filter.add_arbitrary_tag('foo', ["bar"])
+        assert "foo" in filter.to_json_object().keys()
 
 
 
