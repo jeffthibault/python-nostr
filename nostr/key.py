@@ -108,6 +108,17 @@ class PrivateKey:
     def __eq__(self, other):
         return self.raw_secret == other.raw_secret
 
+def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
+    while True:
+        attempts += 1
+        sk = PrivateKey()
+        if prefix is not None and not sk.public_key.bech32()[5:5+len(prefix)] == prefix:
+            continue
+        if suffix is not None and not sk.public_key.bech32()[-len(suffix):] == suffix:
+            continue
+        break
+
+    return sk
 
 ffi = FFI()
 @ffi.callback("int (unsigned char *, const unsigned char *, const unsigned char *, void *)")
