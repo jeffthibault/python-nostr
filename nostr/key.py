@@ -112,6 +112,15 @@ def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
     if prefix is None and suffix is None:
         raise ValueError("Expected at least one of 'prefix' or 'suffix' arguments")
 
+    bech32_chars = '023456789acdefghjklmnpqrstuvwxyz'
+    for pattern in [prefix, suffix]:
+        if pattern is not None:
+            missing_chars = [c for c in pattern if c not in bech32_chars]
+            if len(missing_chars):
+                raise ValueError(
+                    f'{missing_chars} are not valid characters'
+                    f'for a bech32 key. Valid characters include ({bech32_chars})')
+
     while True:
         sk = PrivateKey()
         if prefix is not None and not sk.public_key.bech32()[5:5+len(prefix)] == prefix:
