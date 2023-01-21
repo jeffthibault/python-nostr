@@ -19,7 +19,8 @@ class RelayManager:
         self.relays: dict[str, Relay] = {}
         self.message_pool = MessagePool()
 
-    def add_relay(self, url: str, read: bool=True, write: bool=True, subscriptions={}):
+    def add_relay(self, url: str, read: bool=True, write: bool=True, subscriptions: dict=None):
+        subscriptions = subscriptions or {}
         policy = RelayPolicy(read, write)
         relay = Relay(url, policy, self.message_pool, subscriptions)
         self.relays[url] = relay
