@@ -47,8 +47,11 @@ def test_mine_vanity_key():
     assert sk.public_key.bech32().endswith(pattern)
 
     # mine an invalid pattern
+    pattern = '1'
+    expected_error = "not in valid list of bech32 chars"
     with pytest.raises(ValueError) as e:
-        mine_vanity_key(prefix='1')
+        sk = mine_vanity_key(prefix=pattern)
+    assert expected_error in str(e)
 
 
 def test_expected_pow_times():

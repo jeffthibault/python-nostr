@@ -78,10 +78,10 @@ def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
     for pattern in [prefix, suffix]:
         if pattern is not None:
             missing_chars = [c for c in pattern if c not in bech32_chars]
-            if len(missing_chars):
+            if len(missing_chars) > 0:
                 raise ValueError(
-                    f'{missing_chars} are not valid characters'
-                    f'for a bech32 key. Valid characters include ({bech32_chars})')
+                    f"{missing_chars} not in valid list of bech32 chars: ({bech32_chars})"
+                    )
     while True:
         sk, vk = _guess_vanity_key()
         if prefix is not None and not vk[5:5+len(prefix)] == prefix:
