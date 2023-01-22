@@ -115,6 +115,19 @@ class PrivateKey:
     def __eq__(self, other):
         return self.raw_secret == other.raw_secret
 
+def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
+    if prefix is None and suffix is None:
+        raise ValueError("Expected at least one of 'prefix' or 'suffix' arguments")
+
+    while True:
+        sk = PrivateKey()
+        if prefix is not None and not sk.public_key.bech32()[5:5+len(prefix)] == prefix:
+            continue
+        if suffix is not None and not sk.public_key.bech32()[-len(suffix):] == suffix:
+            continue
+        break
+
+    return sk
 
 
 ffi = FFI()

@@ -26,5 +26,5 @@ def test_only_relay_valid_events():
     assert "failed to verify" in str(e)
 
     # Properly signed Event can be relayed
-    event.sign(pk.hex())
+    pk.sign_event(event)
     relay_manager.publish_event(event)

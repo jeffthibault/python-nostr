@@ -9,7 +9,6 @@ from hashlib import sha256
 from nostr.message_type import ClientMessageType
 
 
-
 class EventKind(IntEnum):
     SET_METADATA = 0
     TEXT_NOTE = 1
