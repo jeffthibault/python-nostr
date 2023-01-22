@@ -20,6 +20,19 @@ def test_mine_key():
     assert pow.count_leading_zero_bits(sk.public_key.hex()) >= difficulty
 
 
+def test_time_estimates():
+    """ test functions to estimate POW time """
+    public_key = PrivateKey().public_key.hex()
+
+    # test successful run of all estimators
+    pow.estimate_event_time('test',
+                            8,
+                            public_key,
+                            EventKind.TEXT_NOTE)
+    pow.estimate_key_time(8)
+    pow.estimate_vanity_time(8)
+
+
 def test_mine_vanity_key():
     """ test vanity key mining """
     pattern = '23'
@@ -36,3 +49,16 @@ def test_mine_vanity_key():
     # mine an invalid pattern
     with pytest.raises(ValueError) as e:
         mine_vanity_key(prefix='1')
+
+
+def test_expected_pow_times():
+    """ sense check expected calculations using known patterns """
+    # assume constant hashrate
+    hashrate = 10000
+
+    # calculate expected time to get a 32-difficulty bit key
+    e1 = pow.expected_time(32, 2, hashrate)
+
+    # caluclate 8 leading 0 hex key, which is equivalent
+    e2 = pow.expected_time(8, 16, hashrate)
+    assert e1 == e2
