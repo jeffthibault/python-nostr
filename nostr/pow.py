@@ -91,3 +91,44 @@ def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
         break
 
     return sk
+
+
+def get_hashrate(operation, n_guesses: int = 1e4, **operation_kwargs):
+    n_guesses = int(n_guesses)
+    def _time_operation():
+        start = time.perf_counter()
+        operation(**operation_kwargs)
+        end = time.perf_counter()
+        return end - start
+    t = sum([_time_operation() for _ in range(n_guesses)]) / n_guesses
+    hashrate = 1 / t
+    return hashrate
+
+
+def expected_time(n_pattern: int, n_options: int, hashrate: float):
+    p = 1 / n_options
+    expected_guesses = 1 / (p ** n_pattern)
+    time_seconds = expected_guesses / hashrate
+    return time_seconds
+
+
+def estimate_event_time(content: str, difficulty: int, public_key: str,
+                        kind: int, tags: list=[]) -> float:
+    all_tags = [["nonce", "1", str(difficulty)]]
+    all_tags.extend(tags)
+    hashrate = get_hashrate(_guess_event,
+                             content=content,
+                             public_key=public_key,
+                             kind=kind,
+                             tags=all_tags)
+    return expected_time(difficulty, 2, hashrate)
+
+
+def estimate_vanity_time(n_pattern: int):
+    hashrate = get_hashrate(_guess_vanity_key)
+    return expected_time(n_pattern, len(bech32_chars), hashrate)
+
+
+def estimate_key_time(difficulty: int) -> float:
+    hashrate = get_hashrate(_guess_key)
+    return expected_time(difficulty, 2, hashrate)
