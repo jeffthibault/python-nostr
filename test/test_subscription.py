@@ -15,7 +15,7 @@ def test_subscription_id():
     
     with pytest.raises(TypeError) as e:
         subscription = Subscription(id=id, filters=filters)
-    
+    assert "Argument 'id' must be of type str" == str(e)
     subscription = Subscription(id=str(id), filters=filters)
     request = [ClientMessageType.REQUEST, subscription.id]
     request.extend(subscription.filters.to_json_array())
