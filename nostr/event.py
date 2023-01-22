@@ -23,8 +23,8 @@ class EventKind(IntEnum):
 @dataclass
 class Event:
     public_key: str
-    content: str = ""
-    created_at: int = int(time.time())
+    content: str = None
+    created_at: int = None
     kind: int = EventKind.TEXT_NOTE
     tags: List[List[str]] = None
     id: str = None
@@ -32,12 +32,22 @@ class Event:
 
 
     def __post_init__(self):
+        if self.content is not None and not isinstance(self.content, str):
+            raise TypeError("Argument 'content' must be of type str")
+
+        if self.created_at is None:
+            self.created_at = int(time.time())
+
+        # Can't initialize the nested type above w/out more complex factory, so doing it here
         if self.tags is None:
             self.tags = []
 
+        if self.id is None:
+            self.compute_id()
+
 
     @staticmethod
-    def serialize(public_key: str, created_at: int, kind: int, tags: "list[list[str]]", content: str) -> bytes:
+    def serialize(public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str) -> bytes:
         data = [0, public_key, created_at, kind, tags, content]
         data_str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
         return data_str.encode()
@@ -47,18 +57,12 @@ class Event:
         self.id = sha256(Event.serialize(self.public_key, self.created_at, self.kind, self.tags, self.content)).hexdigest()
 
 
-    def sign(self, private_key_hex: str) -> None:
-        if self.id is None:
-            self.compute_id()
-            # self.id = Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
-        sk = PrivateKey(bytes.fromhex(private_key_hex))
-        sig = sk.schnorr_sign(bytes.fromhex(self.id), None, raw=True)
-        self.signature = sig.hex()
-
-
     def verify(self) -> bool:
         pub_key = PublicKey(bytes.fromhex("02" + self.public_key), True) # add 02 for schnorr (bip340)
+
+        # Always recompute id just in case something changed
         self.compute_id()
+
         return pub_key.schnorr_verify(bytes.fromhex(self.id), bytes.fromhex(self.signature), None, raw=True)
 
 
@@ -83,11 +87,14 @@ class Event:
 @dataclass
 class EncryptedDirectMessage(Event):
     recipient_pubkey: str = None
-    cleartext_message: str = None
+    cleartext_content: str = None
     reference_event_id: str = None
 
 
     def __post_init__(self):
+        if self.content is not None:
+            raise Exception("Encrypted DMs cannot use the `content` field; use `cleartext_content` instead.")
+
         self.kind = EventKind.ENCRYPTED_DIRECT_MESSAGE
         super().__post_init__()
 
@@ -96,4 +103,6 @@ class EncryptedDirectMessage(Event):
 
         # Optionally specify a reference event (DM) this is a reply to
         if self.reference_event_id:
-            self.tags.append(['m', self.reference_event_id])
+            self.tags.append(['e', self.reference_event_id])
+        
+        self.compute_id()
