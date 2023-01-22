@@ -25,40 +25,56 @@ def count_leading_zero_bits(hex_str: str) -> int:
 
     return total
 
+
+def _guess_event(content: str, public_key: str, kind: int, tags: list=[]) -> Event:
+    event = Event(public_key, content, kind, tags)
+    num_leading_zero_bits = count_leading_zero_bits(event.id)
+    return num_leading_zero_bits, event
+
+
 def mine_event(content: str, difficulty: int, public_key: str, kind: int, tags: list=[]) -> Event:
     all_tags = [["nonce", "1", str(difficulty)]]
     all_tags.extend(tags)
 
-    created_at = int(time.time())
-    event_id = Event.compute_id(public_key, created_at, kind, all_tags, content)
-    num_leading_zero_bits = count_leading_zero_bits(event_id)
+    num_leading_zero_bits, event = _guess_event(content, public_key, kind, all_tags)
 
     attempts = 1
     while num_leading_zero_bits < difficulty:
         attempts += 1
         all_tags[0][1] = str(attempts)
-        created_at = int(time.time())
-        event_id = Event.compute_id(public_key, created_at, kind, all_tags, content)
-        num_leading_zero_bits = count_leading_zero_bits(event_id)
+        num_leading_zero_bits, event = _guess_event(content, public_key, kind, all_tags)
+        num_leading_zero_bits = count_leading_zero_bits(event.id)
 
-    return Event(public_key, content, created_at, kind, all_tags, event_id)
+    return event
 
-def mine_key(difficulty: int) -> PrivateKey:
+
+def _guess_key():
     sk = PrivateKey()
     num_leading_zero_bits = count_leading_zero_bits(sk.public_key.hex())
+    return num_leading_zero_bits, sk
+
+
+def mine_key(difficulty: int) -> PrivateKey:
+    num_leading_zero_bits, sk = _guess_key()
 
     while num_leading_zero_bits < difficulty:
-        sk = PrivateKey()
-        num_leading_zero_bits = count_leading_zero_bits(sk.public_key.hex())
+        num_leading_zero_bits, sk = _guess_key()
 
     return sk
+
+
+bech32_chars = '023456789acdefghjklmnpqrstuvwxyz'
+
+
+def _guess_vanity_key():
+    sk = PrivateKey()
+    vk = sk.public_key.bech32()
+    return sk, vk
 
 
 def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
     if prefix is None and suffix is None:
         raise ValueError("Expected at least one of 'prefix' or 'suffix' arguments")
-
-    bech32_chars = '023456789acdefghjklmnpqrstuvwxyz'
     for pattern in [prefix, suffix]:
         if pattern is not None:
             missing_chars = [c for c in pattern if c not in bech32_chars]
@@ -66,12 +82,11 @@ def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
                 raise ValueError(
                     f'{missing_chars} are not valid characters'
                     f'for a bech32 key. Valid characters include ({bech32_chars})')
-
     while True:
-        sk = PrivateKey()
-        if prefix is not None and not sk.public_key.bech32()[5:5+len(prefix)] == prefix:
+        sk, vk = _guess_vanity_key()
+        if prefix is not None and not vk[5:5+len(prefix)] == prefix:
             continue
-        if suffix is not None and not sk.public_key.bech32()[-len(suffix):] == suffix:
+        if suffix is not None and not vk[-len(suffix):] == suffix:
             continue
         break
 
