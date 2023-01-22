@@ -10,6 +10,7 @@ from nostr.delegation import Delegation
 from nostr.event import EncryptedDirectMessage, Event, EventKind
 from . import bech32
 
+
 class PublicKey:
     def __init__(self, raw_bytes: bytes) -> None:
         self.raw_bytes = raw_bytes
@@ -65,17 +66,21 @@ class PrivateKey:
         pk = secp256k1.PublicKey(bytes.fromhex("02" + public_key_hex), True)
         return pk.ecdh(self.raw_secret, hashfn=copy_x)
 
-    def encrypt_message(self, dm: EncryptedDirectMessage) -> None:
+    def encrypt_message(self, message: str, public_key_hex: str) -> str:
         padder = padding.PKCS7(128).padder()
-        padded_data = padder.update(dm.cleartext_message.encode()) + padder.finalize()
+        padded_data = padder.update(message.encode()) + padder.finalize()
 
         iv = secrets.token_bytes(16)
-        cipher = Cipher(algorithms.AES(self.compute_shared_secret(dm.recipient_pubkey)), modes.CBC(iv))
+        cipher = Cipher(algorithms.AES(self.compute_shared_secret(public_key_hex)), modes.CBC(iv))
 
         encryptor = cipher.encryptor()
         encrypted_message = encryptor.update(padded_data) + encryptor.finalize()
 
-        dm.content = f"{base64.b64encode(encrypted_message).decode()}?iv={base64.b64encode(iv).decode()}"
+        return f"{base64.b64encode(encrypted_message).decode()}?iv={base64.b64encode(iv).decode()}"
+    
+    def encrypt_dm(self, dm: EncryptedDirectMessage) -> None:
+        encrypted_message = self.encrypt_message(message=dm.cleartext_content, public_key_hex=dm.public_key)
+        dm.content = encrypted_message
 
     def decrypt_message(self, encoded_message: str, public_key_hex: str) -> str:
         encoded_data = encoded_message.split('?iv=')
@@ -97,19 +102,32 @@ class PrivateKey:
         sk = secp256k1.PrivateKey(self.raw_secret)
         sig = sk.schnorr_sign(hash, None, raw=True)
         return sig.hex()
-    
+
     def sign_event(self, event: Event) -> None:
         if event.kind == EventKind.ENCRYPTED_DIRECT_MESSAGE:
             self.encrypt_message(event)
         event.compute_id()
         event.signature = self.sign_message_hash(bytes.fromhex(event.id))
-    
+
     def sign_delegation(self, delegation: Delegation) -> None:
         delegation.signature = self.sign_message_hash(sha256(delegation.delegation_token.encode()).digest())
 
     def __eq__(self, other):
         return self.raw_secret == other.raw_secret
 
+def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
+    if prefix is None and suffix is None:
+        raise ValueError("Expected at least one of 'prefix' or 'suffix' arguments")
+
+    while True:
+        sk = PrivateKey()
+        if prefix is not None and not sk.public_key.bech32()[5:5+len(prefix)] == prefix:
+            continue
+        if suffix is not None and not sk.public_key.bech32()[-len(suffix):] == suffix:
+            continue
+        break
+
+    return sk
 
 ffi = FFI()
 @ffi.callback("int (unsigned char *, const unsigned char *, const unsigned char *, void *)")
