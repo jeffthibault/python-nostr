@@ -1,5 +1,6 @@
 import time
 from .event import Event
+from .key import PrivateKey
 
 def zero_bits(b: int) -> int:
     n = 0
@@ -13,10 +14,10 @@ def zero_bits(b: int) -> int:
 
     return 7 - n
 
-def count_leading_zero_bits(event_id: str) -> int:
+def count_leading_zero_bits(hex_str: str) -> int:
     total = 0
-    for i in range(0, len(event_id) - 2, 2):
-        bits = zero_bits(int(event_id[i:i+2], 16))
+    for i in range(0, len(hex_str) - 2, 2):
+        bits = zero_bits(int(hex_str[i:i+2], 16))
         total += bits
 
         if bits != 8:
@@ -41,3 +42,13 @@ def mine_event(content: str, difficulty: int, public_key: str, kind: int, tags: 
         num_leading_zero_bits = count_leading_zero_bits(event_id)
 
     return Event(public_key, content, created_at, kind, all_tags, event_id)
+
+def mine_key(difficulty: int) -> PrivateKey:
+    sk = PrivateKey()
+    num_leading_zero_bits = count_leading_zero_bits(sk.public_key.hex())
+
+    while num_leading_zero_bits < difficulty:
+        sk = PrivateKey()
+        num_leading_zero_bits = count_leading_zero_bits(sk.public_key.hex())
+
+    return sk
