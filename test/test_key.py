@@ -31,21 +31,23 @@ class TestEvent:
         self.sender_pubkey = self.sender_pk.public_key.hex()
     
 
-    def test_sign_is_valid(self):
+    def test_sign_event_is_valid(self):
         """ sign should create a signature that can be verified against Event.id """
         event = Event(content="Hello, world!")
         self.sender_pk.sign_event(event)
-
         assert event.verify()
 
 
-    def test_sign_adds_pubkey(self):
+    def test_sign_event_adds_pubkey(self):
         """ sign should add the sender's pubkey if not already specified """
         event = Event(content="Hello, world!")
+
+        # The event's public_key hasn't been specified yet
         assert event.public_key is None
 
         self.sender_pk.sign_event(event)
 
+        # PrivateKey.sign() should have populated public_key
         assert event.public_key == self.sender_pubkey
 
 
