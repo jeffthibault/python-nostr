@@ -79,7 +79,7 @@ class PrivateKey:
         return f"{base64.b64encode(encrypted_message).decode()}?iv={base64.b64encode(iv).decode()}"
     
     def encrypt_dm(self, dm: EncryptedDirectMessage) -> None:
-        encrypted_message = self.encrypt_message(message=dm.cleartext_content, public_key_hex=dm.public_key)
+        encrypted_message = self.encrypt_message(message=dm.cleartext_content, public_key_hex=dm.recipient_pubkey)
         dm.content = encrypted_message
 
     def decrypt_message(self, encoded_message: str, public_key_hex: str) -> str:
@@ -104,8 +104,10 @@ class PrivateKey:
         return sig.hex()
 
     def sign_event(self, event: Event) -> None:
-        if event.kind == EventKind.ENCRYPTED_DIRECT_MESSAGE:
-            self.encrypt_message(event)
+        if event.kind == EventKind.ENCRYPTED_DIRECT_MESSAGE and event.content is None:
+            self.encrypt_dm(event)
+        if not event.public_key:
+            event.public_key = self.public_key.hex()
         event.compute_id()
         event.signature = self.sign_message_hash(bytes.fromhex(event.id))
 
@@ -114,20 +116,6 @@ class PrivateKey:
 
     def __eq__(self, other):
         return self.raw_secret == other.raw_secret
-
-def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
-    if prefix is None and suffix is None:
-        raise ValueError("Expected at least one of 'prefix' or 'suffix' arguments")
-
-    while True:
-        sk = PrivateKey()
-        if prefix is not None and not sk.public_key.bech32()[5:5+len(prefix)] == prefix:
-            continue
-        if suffix is not None and not sk.public_key.bech32()[-len(suffix):] == suffix:
-            continue
-        break
-
-    return sk
 
 
 ffi = FFI()

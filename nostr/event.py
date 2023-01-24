@@ -21,7 +21,7 @@ class EventKind(IntEnum):
 
 @dataclass
 class Event:
-    public_key: str
+    public_key: str = None
     content: str = None
     created_at: int = None
     kind: int = EventKind.TEXT_NOTE
@@ -32,6 +32,7 @@ class Event:
 
     def __post_init__(self):
         if self.content is not None and not isinstance(self.content, str):
+            # DMs initialize content to None but all other kinds should pass in a str
             raise TypeError("Argument 'content' must be of type str")
 
         if self.created_at is None:
@@ -54,6 +55,18 @@ class Event:
 
     def compute_id(self):
         self.id = sha256(Event.serialize(self.public_key, self.created_at, self.kind, self.tags, self.content)).hexdigest()
+
+
+    def add_pubkey_ref(self, pubkey:str):
+        """ Adds a reference to a pubkey as a 'p' tag """
+        self.tags.append(['p', pubkey])
+        self.compute_id()
+
+
+    def add_event_ref(self, event_id:str):
+        """ Adds a reference to an event_id as an 'e' tag """
+        self.tags.append(['e', event_id])
+        self.compute_id()
 
 
     def verify(self) -> bool:
@@ -94,14 +107,15 @@ class EncryptedDirectMessage(Event):
         if self.content is not None:
             raise Exception("Encrypted DMs cannot use the `content` field; use `cleartext_content` instead.")
 
+        if self.recipient_pubkey is None:
+            raise Exception("Must specify a recipient_pubkey.")
+
         self.kind = EventKind.ENCRYPTED_DIRECT_MESSAGE
         super().__post_init__()
 
-        # Must specify the DM recipient's pubkey hex in a tag
-        self.tags.append(['p', self.recipient_pubkey])
+        # Must specify the DM recipient's pubkey in a 'p' tag
+        self.add_pubkey_ref(self.recipient_pubkey)
 
         # Optionally specify a reference event (DM) this is a reply to
         if self.reference_event_id:
-            self.tags.append(['e', self.reference_event_id])
-        
-        self.compute_id()
+            self.add_event_ref(self.reference_event_id)

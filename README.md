@@ -11,6 +11,7 @@ public_key = private_key.public_key
 print(f"Private key: {private_key.bech32()}")
 print(f"Public key: {public_key.bech32()}")
 ```
+
 **Connect to relays**
 ```python
 import json
@@ -30,6 +31,7 @@ while relay_manager.message_pool.has_notices():
   
 relay_manager.close_connections()
 ```
+
 **Publish to relays**
 ```python
 import json 
@@ -48,7 +50,7 @@ time.sleep(1.25) # allow the connections to open
 
 private_key = PrivateKey()
 
-event = Event(private_key.public_key.hex(), "Hello Nostr")
+event = Event("Hello Nostr")
 private_key.sign_event(event)
 
 relay_manager.publish_event(event)
@@ -56,6 +58,38 @@ time.sleep(1) # allow the messages to send
 
 relay_manager.close_connections()
 ```
+
+**Reply to a note**
+```python
+from nostr.event import Event
+
+reply = Event(
+  content="Hey, that's a great point!",
+)
+
+# create 'e' tag reference to the note you're replying to
+reply.add_event_ref(original_note_id)
+
+# create 'p' tag reference to the pubkey you're replying to
+reply.add_pubkey_ref(original_note_author_pubkey)
+
+private_key.sign_event(reply)
+relay_manager.publish_event(reply)
+```
+
+**Send a DM**
+```python
+from nostr.event import EncryptedDirectMessage
+
+dm = EncryptedDirectMessage(
+  recipient_pubkey=recipient_pubkey,
+  cleartext_content="Secret message!"
+)
+private_key.sign_event(dm)
+relay_manager.publish_event(dm)
+```
+
+
 **Receive events from relays**
 ```python
 import json
@@ -112,7 +146,6 @@ delegation = Delegation(
 identity_pk.sign_delegation(delegation)
 
 event = Event(
-    delegatee_pk.public_key.hex(),
     "Hello, NIP-26!",
     tags=[delegation.get_tag()],
 )
