@@ -94,7 +94,6 @@ class Relay:
 
     def _on_close(self, class_obj, status_code, message):
         self.connected = False
-        self.check_reconnect()
         pass
 
     def _on_message(self, class_obj, message: str):
