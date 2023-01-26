@@ -37,8 +37,12 @@ class Relay:
             on_error=self._on_error,
             on_close=self._on_close)
 
-    def connect(self, ssl_options: dict=None):
-        self.ws.run_forever(sslopt=ssl_options)
+    def connect(self, ssl_options: dict=None, proxy: dict=None):
+        self.ws.run_forever(
+            sslopt=ssl_options,
+            http_proxy_host=None if proxy is None else proxy.get('host'), 
+            http_proxy_port=None if proxy is None else proxy.get('port')
+        )
 
     def close(self):
         self.ws.close()
