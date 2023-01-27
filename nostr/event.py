@@ -28,7 +28,7 @@ class Event():
             signature: str=None) -> None:
         if not isinstance(content, str):
             raise TypeError("Argument 'content' must be of type str")
-        
+
         self.public_key = public_key
         self.content = content
         self.created_at = created_at or int(time.time())
