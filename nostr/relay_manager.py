@@ -35,7 +35,7 @@ class RelayManager:
         for relay in self.relays.values():
             relay.close_subscription(id)
 
-    def open_connections(self, ssl_options: dict=None, proxy: dict= None):
+    def open_connections(self, ssl_options: dict=None, proxy: dict=None):
         for relay in self.relays.values():
             threading.Thread(
                 target=relay.connect,
