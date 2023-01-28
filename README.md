@@ -1,8 +1,11 @@
 # python-nostr
+
 A Python library for making [Nostr](https://github.com/nostr-protocol/nostr) clients
 
 ## Usage
+
 **Generate a key**
+
 ```python
 from nostr.key import PrivateKey
 
@@ -11,7 +14,9 @@ public_key = private_key.public_key
 print(f"Private key: {private_key.bech32()}")
 print(f"Public key: {public_key.bech32()}")
 ```
+
 **Connect to relays**
+
 ```python
 import json
 import ssl
@@ -27,12 +32,14 @@ time.sleep(1.25) # allow the connections to open
 while relay_manager.message_pool.has_notices():
   notice_msg = relay_manager.message_pool.get_notice()
   print(notice_msg.content)
-  
+
 relay_manager.close_connections()
 ```
+
 **Publish to relays**
+
 ```python
-import json 
+import json
 import ssl
 import time
 from nostr.event import Event
@@ -56,7 +63,9 @@ time.sleep(1) # allow the messages to send
 
 relay_manager.close_connections()
 ```
+
 **Receive events from relays**
+
 ```python
 import json
 import ssl
@@ -85,7 +94,7 @@ time.sleep(1) # allow the messages to send
 while relay_manager.message_pool.has_events():
   event_msg = relay_manager.message_pool.get_event()
   print(event_msg.event.content)
-  
+
 relay_manager.close_connections()
 ```
 
@@ -127,16 +136,29 @@ Hopefully clients will include an optional field to store the delegation tag. Th
 
 
 ## Installation
+
 ```bash
 pip install nostr
 ```
 
 Note: I wrote this with Python 3.9.5.
 
-## Test Suite
-See the [Test Suite README](test/README.md)
+## Running tests
+
+Install tox
+
+```
+pip install tox
+```
+
+Run tests
+
+```
+tox
+```
 
 ## Disclaimer
+
 - This library is in very early development.
 - It might have some bugs.
 - I need to add more tests.
