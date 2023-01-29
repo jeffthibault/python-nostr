@@ -23,7 +23,7 @@ class Event():
             content: str, 
             created_at: int = None, 
             kind: int=EventKind.TEXT_NOTE, 
-            tags: "list[list[str]]"=[], 
+            tags: "list[list[str]]" = None, 
             id: str=None, 
             signature: str=None) -> None:
         if not isinstance(content, str):
@@ -33,7 +33,7 @@ class Event():
         self.content = content
         self.created_at = created_at or int(time.time())
         self.kind = kind
-        self.tags = tags
+        self.tags = tags or []
         self.signature = signature
         self.id = id or Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
 
