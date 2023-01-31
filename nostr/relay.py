@@ -34,6 +34,10 @@ class Relay:
         self.reconnect: bool = True
         self.error_counter: int = 0
         self.error_threshold: int = 0
+        self.num_received_events: int = 0
+        self.num_sent_events: int = 0
+        self.num_subscriptions: int = 0
+        self.ping: int = 0
         self.ssl_options: dict = {}
         self.lock = Lock()
         self.ws = WebSocketApp(
@@ -63,6 +67,7 @@ class Relay:
 
     def publish(self, message: str):
         if self.connected:
+            self.num_sent_events += 1
             self.ws.send(message)
 
     def add_subscription(self, id, filters: Filters):
@@ -98,6 +103,7 @@ class Relay:
 
     def _on_message(self, class_obj, message: str):
         if self._is_valid_message(message):
+            self.num_received_events += 1
             self.message_pool.add_message(message, self.url)
 
     def _on_error(self, class_obj, error):
