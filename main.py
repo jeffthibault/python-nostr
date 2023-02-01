@@ -3,6 +3,8 @@ from nostr.event import Event
 from nostr.key import PublicKey
 import asyncio
 import threading
+import time
+import datetime
 
 
 async def dm():
@@ -20,11 +22,20 @@ async def dm():
     client = NostrClient(privatekey_hex=pk)
     await asyncio.sleep(1)
 
+    filters = {
+        "since": int(
+            time.mktime(
+                (datetime.datetime.now() - datetime.timedelta(hours=1)).timetuple()
+            )
+        )
+    }
+
     t = threading.Thread(
         target=client.get_dm,
         args=(
             client.public_key,
             callback,
+            filters,
         ),
     )
     t.start()
@@ -64,11 +75,20 @@ async def post():
         print(f"Subscribing to posts by {to_pubk_hex}")
         to_pubk = PublicKey(bytes.fromhex(to_pubk_hex))
 
+    filters = {
+        "since": int(
+            time.mktime(
+                (datetime.datetime.now() - datetime.timedelta(hours=1)).timetuple()
+            )
+        )
+    }
+
     t = threading.Thread(
         target=sender_client.get_post,
         args=(
             to_pubk,
             callback,
+            filters,
         ),
     )
     t.start()

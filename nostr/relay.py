@@ -65,6 +65,12 @@ class Relay:
             time.sleep(1)
             self.connect(self.ssl_options)
 
+    def get_pint(self):
+        if self.connected:
+            return int(self.ws.last_ping_tm - self.ws.last_pong_tm)
+        else:
+            return 0
+
     def publish(self, message: str):
         if self.connected:
             self.num_sent_events += 1
