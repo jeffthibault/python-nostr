@@ -64,6 +64,7 @@ class Relay:
             time.sleep(1)
             self.connect(self.ssl_options)
 
+    @property
     def ping(self):
         if self.connected:
             return int(self.ws.last_ping_tm - self.ws.last_pong_tm)
