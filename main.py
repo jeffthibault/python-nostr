@@ -20,7 +20,6 @@ async def dm():
         )
 
     client = NostrClient(privatekey_hex=pk)
-    await asyncio.sleep(1)
 
     filters = {
         "since": int(
@@ -61,7 +60,6 @@ async def post():
         print(f"From {event.public_key[:3]}..{event.public_key[-3:]}: {event.content}")
 
     sender_client = NostrClient(privatekey_hex=pk)
-    await asyncio.sleep(1)
 
     to_pubk_hex = (
         input(
@@ -99,7 +97,7 @@ async def post():
 
 
 # write a DM and receive DMs
-# asyncio.run(dm())
+asyncio.run(dm())
 
 # make a post and subscribe to posts
-asyncio.run(post())
+# asyncio.run(post())

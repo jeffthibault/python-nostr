@@ -21,9 +21,11 @@ from . import cbc
 
 class NostrClient:
     relays = [
+        "wss://relay.snort.social",
         "wss://nostr-pub.wellorder.net",
         "wss://nostr.zebedee.cloud",
-        "nostr.mom",
+        "wss://nostr.mom",
+        # "wss://wss://lnbits.link/nostrrelay/client"
         # "wss://no.str.cr",
     ]  # ["wss://nostr.oxtr.dev"]  # ["wss://relay.nostr.info"] "wss://nostr-pub.wellorder.net"  "ws://91.237.88.218:2700", "wss://nostrrr.bublina.eu.org", ""wss://nostr-relay.freeberty.net"", , "wss://nostr.oxtr.dev", "wss://relay.nostr.info", "wss://nostr-pub.wellorder.net" , "wss://relayer.fiatjaf.com", "wss://nodestr.fmt.wiz.biz/", "wss://no.str.cr"
     relay_manager = RelayManager()
@@ -72,8 +74,6 @@ class NostrClient:
         request = [ClientMessageType.REQUEST, subscription_id]
         request.extend(filters.to_json_array())
         message = json.dumps(request)
-        # print("Subscribing to events:")
-        # print(message)
         self.relay_manager.publish_message(message)
 
         while True:
@@ -98,8 +98,6 @@ class NostrClient:
         )
         event.sign(self.private_key.hex())
         event_message = json.dumps([ClientMessageType.EVENT, event.to_json_object()])
-
-        time.sleep(1)
         self.relay_manager.publish_message(event_message)
 
     def get_dm(self, sender_publickey: PublicKey, callback_func=None, filter_kwargs={}):

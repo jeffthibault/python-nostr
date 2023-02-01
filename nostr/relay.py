@@ -45,13 +45,17 @@ class Relay:
             on_message=self._on_message,
             on_error=self._on_error,
             on_close=self._on_close,
+            on_ping=self._on_ping,
+            on_pong=self._on_pong,
         )
 
     def connect(self, ssl_options: dict = {}):
         self.ssl_options = ssl_options
-        self.ws.run_forever(sslopt=self.ssl_options, ping_interval=2)
+        print(self.url, "🟢")
+        self.ws.run_forever(sslopt=self.ssl_options)
 
     def close(self):
+        print(self.url, "🔴")
         self.ws.close()
 
     def check_reconnect(self):
@@ -111,14 +115,25 @@ class Relay:
         if self._is_valid_message(message):
             self.num_received_events += 1
             self.message_pool.add_message(message, self.url)
+        else:
+            print(self.url, "invalid message", message)
 
     def _on_error(self, class_obj, error):
+        print(self.url, "🚫", error)
         self.connected = False
         self.error_counter += 1
         if self.error_threshold and self.error_counter > self.error_threshold:
             pass
         else:
             self.check_reconnect()
+
+    def _on_ping(self, class_obj, message):
+        print(self.url, "ping", message)
+        return
+
+    def _on_pong(self, class_obj, message):
+        print(self.url, "pong", message)
+        return
 
     def _is_valid_message(self, message: str) -> bool:
         message = message.strip("\n")
