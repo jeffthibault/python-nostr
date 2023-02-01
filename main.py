@@ -53,11 +53,16 @@ async def post():
     await asyncio.sleep(1)
 
     to_pubk_hex = (
-        input("Enter other pubkey (enter nothing to read your own posts): ")
+        input(
+            "Enter other pubkey (enter nothing to read your own posts, enter * for all): "
+        )
         or sender_client.public_key.hex()
     )
-    print(f"Subscribing to posts by {to_pubk_hex}")
-    to_pubk = PublicKey(bytes.fromhex(to_pubk_hex))
+    if to_pubk_hex == "*":
+        to_pubk = None
+    else:
+        print(f"Subscribing to posts by {to_pubk_hex}")
+        to_pubk = PublicKey(bytes.fromhex(to_pubk_hex))
 
     t = threading.Thread(
         target=sender_client.get_post,
@@ -74,7 +79,7 @@ async def post():
 
 
 # write a DM and receive DMs
-asyncio.run(dm())
+# asyncio.run(dm())
 
 # make a post and subscribe to posts
-# asyncio.run(post())
+asyncio.run(post())

@@ -62,10 +62,12 @@ class NostrClient:
         # print(message)
         self.relay_manager.publish_message(message)
 
-    def get_post(self, sender_publickey: PublicKey, callback_func=None):
-        filters = Filters(
-            [Filter(authors=[sender_publickey.hex()], kinds=[EventKind.TEXT_NOTE])]
+    def get_post(self, sender_publickey: PublicKey = None, callback_func=None):
+        filter = Filter(
+            authors=[sender_publickey.hex()] if sender_publickey else None,
+            kinds=[EventKind.TEXT_NOTE],
         )
+        filters = Filters([filter])
         subscription_id = os.urandom(4).hex()
         self.relay_manager.add_subscription(subscription_id, filters)
 
