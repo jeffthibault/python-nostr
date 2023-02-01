@@ -49,7 +49,7 @@ class Relay:
 
     def connect(self, ssl_options: dict = {}):
         self.ssl_options = ssl_options
-        self.ws.run_forever(sslopt=self.ssl_options)
+        self.ws.run_forever(sslopt=self.ssl_options, ping_interval=2)
 
     def close(self):
         self.ws.close()
