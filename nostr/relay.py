@@ -37,7 +37,6 @@ class Relay:
         self.num_received_events: int = 0
         self.num_sent_events: int = 0
         self.num_subscriptions: int = 0
-        self.ping: int = 0
         self.ssl_options: dict = {}
         self.lock = Lock()
         self.ws = WebSocketApp(
@@ -65,7 +64,7 @@ class Relay:
             time.sleep(1)
             self.connect(self.ssl_options)
 
-    def get_pint(self):
+    def ping(self):
         if self.connected:
             return int(self.ws.last_ping_tm - self.ws.last_pong_tm)
         else:
