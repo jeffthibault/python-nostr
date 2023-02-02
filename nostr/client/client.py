@@ -56,8 +56,8 @@ class NostrClient:
 
     def post(self, message: str):
         event = Event(self.public_key.hex(), message, kind=EventKind.TEXT_NOTE)
-        event.sign(self.private_key.hex())
-        message = json.dumps([ClientMessageType.EVENT, event.to_json_object()])
+        event.signature = self.private_key.sign_event(event)
+        message = json.dumps([ClientMessageType.EVENT, event.to_message()])
         # print("Publishing message:")
         # print(message)
         self.relay_manager.publish_message(message)
@@ -101,8 +101,8 @@ class NostrClient:
             tags=[["p", to_pubkey.hex()]],
             kind=EventKind.ENCRYPTED_DIRECT_MESSAGE,
         )
-        event.sign(self.private_key.hex())
-        event_message = json.dumps([ClientMessageType.EVENT, event.to_json_object()])
+        event.signature = self.private_key.sign_event(event)
+        event_message = json.dumps([ClientMessageType.EVENT, event.to_message()])
         # print("DM message:")
         # print(event_message)
 
@@ -114,7 +114,7 @@ class NostrClient:
             [
                 Filter(
                     kinds=[EventKind.ENCRYPTED_DIRECT_MESSAGE],
-                    tags={"#p": [sender_publickey.hex()]},
+                    pubkey_refs={"#p": [sender_publickey.hex()]},
                 )
             ]
         )
