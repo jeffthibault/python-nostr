@@ -35,6 +35,7 @@ class Relay:
         self.error_counter: int = 0
         self.error_threshold: int = 0
         self.ssl_options: dict = {}
+        self.proxy: dict = {}
         self.lock = Lock()
         self.ws = WebSocketApp(
             url,
@@ -44,13 +45,14 @@ class Relay:
             on_close=self._on_close,
         )
 
-    def connect(self, ssl_options: dict=None, proxy: dict=None):
+    def connect(self, ssl_options: dict = None, proxy: dict = None):
         self.ssl_options = ssl_options
+        self.proxy = proxy
         self.ws.run_forever(
             sslopt=ssl_options,
-            http_proxy_host=None if proxy is None else proxy.get('host'), 
-            http_proxy_port=None if proxy is None else proxy.get('port'),
-            proxy_type=None if proxy is None else proxy.get('type')
+            http_proxy_host=None if proxy is None else proxy.get("host"),
+            http_proxy_port=None if proxy is None else proxy.get("port"),
+            proxy_type=None if proxy is None else proxy.get("type"),
         )
 
     def close(self):
@@ -64,7 +66,7 @@ class Relay:
         self.connected = False
         if self.reconnect:
             time.sleep(1)
-            self.connect(self.ssl_options)
+            self.connect(self.ssl_options, self.proxy)
 
     def publish(self, message: str):
         if self.connected:
