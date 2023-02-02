@@ -1,12 +1,13 @@
 import time
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import List
 from secp256k1 import PrivateKey, PublicKey
 from hashlib import sha256
 
 from nostr.message_type import ClientMessageType
+
 
 
 class EventKind(IntEnum):
@@ -21,12 +22,11 @@ class EventKind(IntEnum):
 
 @dataclass
 class Event:
-    public_key: str = None
     content: str = None
+    public_key: str = None
     created_at: int = None
     kind: int = EventKind.TEXT_NOTE
-    tags: List[List[str]] = None
-    id: str = None
+    tags: List[List[str]] = field(default_factory=list)  # Dataclasses require special handling when the default value is a mutable type
     signature: str = None
 
 
@@ -38,13 +38,6 @@ class Event:
         if self.created_at is None:
             self.created_at = int(time.time())
 
-        # Can't initialize the nested type above w/out more complex factory, so doing it here
-        if self.tags is None:
-            self.tags = []
-
-        if self.id is None:
-            self.compute_id()
-
 
     @staticmethod
     def serialize(public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str) -> bytes:
@@ -53,28 +46,29 @@ class Event:
         return data_str.encode()
 
 
-    def compute_id(self):
-        self.id = sha256(Event.serialize(self.public_key, self.created_at, self.kind, self.tags, self.content)).hexdigest()
+    @staticmethod
+    def compute_id(public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str):
+        return sha256(Event.serialize(public_key, created_at, kind, tags, content)).hexdigest()
+
+
+    @property
+    def id(self) -> str:
+        # Always recompute the id to reflect the up-to-date state of the Event
+        return Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
 
 
     def add_pubkey_ref(self, pubkey:str):
         """ Adds a reference to a pubkey as a 'p' tag """
         self.tags.append(['p', pubkey])
-        self.compute_id()
 
 
     def add_event_ref(self, event_id:str):
         """ Adds a reference to an event_id as an 'e' tag """
         self.tags.append(['e', event_id])
-        self.compute_id()
 
 
     def verify(self) -> bool:
-        pub_key = PublicKey(bytes.fromhex("02" + self.public_key), True) # add 02 for schnorr (bip340)
-
-        # Always recompute id just in case something changed
-        self.compute_id()
-
+        pub_key = PublicKey(bytes.fromhex("02" + self.public_key), True)  # add 02 for schnorr (bip340)
         return pub_key.schnorr_verify(bytes.fromhex(self.id), bytes.fromhex(self.signature), None, raw=True)
 
 
@@ -105,7 +99,8 @@ class EncryptedDirectMessage(Event):
 
     def __post_init__(self):
         if self.content is not None:
-            raise Exception("Encrypted DMs cannot use the `content` field; use `cleartext_content` instead.")
+            self.cleartext_content = self.content
+            self.content = None
 
         if self.recipient_pubkey is None:
             raise Exception("Must specify a recipient_pubkey.")
@@ -117,5 +112,12 @@ class EncryptedDirectMessage(Event):
         self.add_pubkey_ref(self.recipient_pubkey)
 
         # Optionally specify a reference event (DM) this is a reply to
-        if self.reference_event_id:
+        if self.reference_event_id is not None:
             self.add_event_ref(self.reference_event_id)
+
+
+    @property
+    def id(self) -> str:
+        if self.content is None:
+            raise Exception("EncryptedDirectMessage `id` is undefined until its message is encrypted and stored in the `content` field")
+        return super().id
