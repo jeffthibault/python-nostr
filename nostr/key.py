@@ -4,7 +4,12 @@ import secp256k1
 from cffi import FFI
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
+from hashlib import sha256
+
+from nostr.delegation import Delegation
+from nostr.event import Event
 from . import bech32
+
 
 class PublicKey:
     def __init__(self, raw_bytes: bytes) -> None:
@@ -21,6 +26,14 @@ class PublicKey:
         pk = secp256k1.PublicKey(b"\x02" + self.raw_bytes, True)
         return pk.schnorr_verify(bytes.fromhex(hash), bytes.fromhex(sig), None, True)
 
+    @classmethod
+    def from_npub(cls, npub: str):
+        """ Load a PublicKey from its bech32/npub form """
+        hrp, data, spec = bech32.bech32_decode(npub)
+        raw_public_key = bech32.convertbits(data, 5, 8)[:-1]
+        return cls(bytes(raw_public_key))
+
+
 class PrivateKey:
     def __init__(self, raw_secret: bytes=None) -> None:
         if not raw_secret is None:
@@ -30,6 +43,13 @@ class PrivateKey:
 
         sk = secp256k1.PrivateKey(self.raw_secret)
         self.public_key = PublicKey(sk.pubkey.serialize()[1:])
+
+    @classmethod
+    def from_nsec(cls, nsec: str):
+        """ Load a PrivateKey from its bech32/nsec form """
+        hrp, data, spec = bech32.bech32_decode(nsec)
+        raw_secret = bech32.convertbits(data, 5, 8)[:-1]
+        return cls(bytes(raw_secret))
 
     def bech32(self) -> str:
         converted_bits = bech32.convertbits(self.raw_secret, 8, 5)
@@ -78,6 +98,29 @@ class PrivateKey:
         sk = secp256k1.PrivateKey(self.raw_secret)
         sig = sk.schnorr_sign(hash, None, raw=True)
         return sig.hex()
+
+    def sign_event(self, event: Event) -> None:
+        event.signature = self.sign_message_hash(bytes.fromhex(event.id))
+
+    def sign_delegation(self, delegation: Delegation) -> None:
+        delegation.signature = self.sign_message_hash(sha256(delegation.delegation_token.encode()).digest())
+
+    def __eq__(self, other):
+        return self.raw_secret == other.raw_secret
+
+def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
+    if prefix is None and suffix is None:
+        raise ValueError("Expected at least one of 'prefix' or 'suffix' arguments")
+
+    while True:
+        sk = PrivateKey()
+        if prefix is not None and not sk.public_key.bech32()[5:5+len(prefix)] == prefix:
+            continue
+        if suffix is not None and not sk.public_key.bech32()[-len(suffix):] == suffix:
+            continue
+        break
+
+    return sk
 
 ffi = FFI()
 @ffi.callback("int (unsigned char *, const unsigned char *, const unsigned char *, void *)")
