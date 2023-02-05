@@ -1,5 +1,7 @@
+from binascii import hexlify
 import pytest
 import time
+from nostr import bech32
 from nostr.event import Event, EncryptedDirectMessage
 from nostr.key import PrivateKey
 
@@ -35,6 +37,19 @@ class TestEvent:
         # Recomputed id should now be different
         assert event.id != event_id
     
+
+    def test_note_id(self):
+        """ should convert the event id to its `note`-prepended bech32 form """
+        event = Event(content="some event")
+        assert event.note_id.startswith("note")
+
+        # reverse the bech32 encoding
+        hrp, data, spec = bech32.bech32_decode(event.note_id)
+        raw_event_id = bech32.convertbits(data, 5, 8)[:-1]
+
+        # Should get the same event_id back
+        assert event.id == hexlify(bytes(raw_event_id)).decode() 
+
 
     def test_add_event_ref(self):
         """ should add an 'e' tag for each event_ref added """

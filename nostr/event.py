@@ -1,3 +1,4 @@
+from binascii import unhexlify
 import time
 import json
 from dataclasses import dataclass, field
@@ -5,6 +6,7 @@ from enum import IntEnum
 from typing import List
 from secp256k1 import PrivateKey, PublicKey
 from hashlib import sha256
+from nostr import bech32
 
 from nostr.message_type import ClientMessageType
 
@@ -55,6 +57,12 @@ class Event:
     def id(self) -> str:
         # Always recompute the id to reflect the up-to-date state of the Event
         return Event.compute_id(self.public_key, self.created_at, self.kind, self.tags, self.content)
+
+
+    @property
+    def note_id(self) -> str:
+        converted_bits = bech32.convertbits(unhexlify(self.id), 8, 5)
+        return bech32.bech32_encode("note", converted_bits, bech32.Encoding.BECH32)
 
 
     def add_pubkey_ref(self, pubkey:str):
