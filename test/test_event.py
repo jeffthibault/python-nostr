@@ -38,7 +38,7 @@ class TestEvent:
         assert event.id != event_id
     
 
-    def test_note_id(self):
+    def test_note_id_bech32_conversion(self):
         """ should convert the event id to its `note`-prepended bech32 form """
         event = Event(content="some event")
         assert event.note_id.startswith("note")
@@ -48,7 +48,32 @@ class TestEvent:
         raw_event_id = bech32.convertbits(data, 5, 8)[:-1]
 
         # Should get the same event_id back
-        assert event.id == hexlify(bytes(raw_event_id)).decode() 
+        assert event.id == hexlify(bytes(raw_event_id)).decode()
+    
+
+    def test_note_id_conformity(self):
+        """ should produce the same note ID as a known published note """
+        """
+            A real-world note from fiatjaf:
+            {
+                "id": "deb8b23368b6c658c36cf16396927a045dee0b7707b4133d714fb67264cc10cc",
+                "kind": 1,
+                "pubkey": "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d",
+                "created_at": 1673361254,
+                "content": "hello",
+                "tags": [],
+                "sig": "f5e5e8a477c6749ef8562c23cdfec7a6917c975ec55075489cb3319b8a2ccb78317335a6850fb3a3714777b1c22611419d6c81ce4b0b88db86e2d1662bb17540"
+            }
+        """
+        event = Event(
+            content="hello",
+            public_key="3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d",
+            created_at=1673361254,
+            kind=1,
+            signature="f5e5e8a477c6749ef8562c23cdfec7a6917c975ec55075489cb3319b8a2ccb78317335a6850fb3a3714777b1c22611419d6c81ce4b0b88db86e2d1662bb17540"
+        )
+        assert event.id == "deb8b23368b6c658c36cf16396927a045dee0b7707b4133d714fb67264cc10cc"
+        assert event.note_id == "note1m6utyvmgkmr93smv793edyn6q3w7uzmhq76px0t3f7m8yexvzrxqw46k83"
 
 
     def test_add_event_ref(self):
