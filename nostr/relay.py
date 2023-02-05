@@ -41,7 +41,8 @@ class Relay:
         self.ws.run_forever(
             sslopt=ssl_options,
             http_proxy_host=None if proxy is None else proxy.get('host'), 
-            http_proxy_port=None if proxy is None else proxy.get('port')
+            http_proxy_port=None if proxy is None else proxy.get('port'),
+            proxy_type=None if proxy is None else proxy.get('type')
         )
 
     def close(self):
