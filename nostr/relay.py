@@ -1,5 +1,6 @@
 import json
 from threading import Lock
+from typing import Optional
 from websocket import WebSocketApp
 from .event import Event
 from .filter import Filters
@@ -37,7 +38,7 @@ class Relay:
             on_error=self._on_error,
             on_close=self._on_close)
 
-    def connect(self, ssl_options: dict=None, proxy: dict=None):
+    def connect(self, ssl_options: Optional[dict]=None, proxy: Optional[dict]=None):
         self.ws.run_forever(
             sslopt=ssl_options,
             http_proxy_host=None if proxy is None else proxy.get('host'), 
@@ -96,14 +97,20 @@ class Relay:
         if message_type == RelayMessageType.EVENT:
             if not len(message_json) == 3:
                 return False
-            
+
             subscription_id = message_json[1]
             with self.lock:
                 if subscription_id not in self.subscriptions:
                     return False
 
             e = message_json[2]
-            event = Event(e['pubkey'], e['content'], e['created_at'], e['kind'], e['tags'], e['id'], e['sig'])
+            event = Event(
+                    content=e['content'],
+                    public_key=e['pubkey'],
+                    created_at=e['created_at'],
+                    kind=e['kind'],
+                    tags=e['tags'],
+                    signature=e['sig'])
             if not event.verify():
                 return False
 

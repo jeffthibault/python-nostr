@@ -1,5 +1,6 @@
 import json
 import threading
+from typing import Optional
 
 from .event import Event
 from .filter import Filters
@@ -35,7 +36,7 @@ class RelayManager:
         for relay in self.relays.values():
             relay.close_subscription(id)
 
-    def open_connections(self, ssl_options: dict=None, proxy: dict=None):
+    def open_connections(self, ssl_options: Optional[dict]=None, proxy: Optional[dict]=None):
         for relay in self.relays.values():
             threading.Thread(
                 target=relay.connect,

@@ -1,9 +1,10 @@
 import time
+from typing import Optional
 import json
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import List
-from secp256k1 import PrivateKey, PublicKey
+from secp256k1 import PrivateKey, PublicKey  # type: ignore
 from hashlib import sha256
 
 from nostr.message_type import ClientMessageType
@@ -22,12 +23,12 @@ class EventKind(IntEnum):
 
 @dataclass
 class Event:
-    content: str = None
-    public_key: str = None
-    created_at: int = None
-    kind: int = EventKind.TEXT_NOTE
+    content: Optional[str] = None
+    public_key: Optional[str] = None
+    created_at: Optional[int] = None
+    kind: Optional[int] = EventKind.TEXT_NOTE
     tags: List[List[str]] = field(default_factory=list)  # Dataclasses require special handling when the default value is a mutable type
-    signature: str = None
+    signature: Optional[str] = None
 
 
     def __post_init__(self):
@@ -92,9 +93,9 @@ class Event:
 
 @dataclass
 class EncryptedDirectMessage(Event):
-    recipient_pubkey: str = None
-    cleartext_content: str = None
-    reference_event_id: str = None
+    recipient_pubkey: Optional[str] = None
+    cleartext_content: Optional[str] = None
+    reference_event_id: Optional[str] = None
 
 
     def __post_init__(self):
