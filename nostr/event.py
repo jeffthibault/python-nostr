@@ -73,21 +73,31 @@ class Event:
         return pub_key.schnorr_verify(bytes.fromhex(self.id), bytes.fromhex(self.signature), None, raw=True)
 
 
-    def to_message(self) -> str:
-        return json.dumps(
-            [
-                ClientMessageType.EVENT,
-                {
-                    "id": self.id,
-                    "pubkey": self.public_key,
-                    "created_at": self.created_at,
-                    "kind": self.kind,
-                    "tags": self.tags,
-                    "content": self.content,
-                    "sig": self.signature
-                }
-            ]
+    @classmethod
+    def from_dict(cls, msg: dict) -> 'Event':
+        # "id" is ignore, as it will be computed from the contents
+        return Event(
+            content=msg['content'],
+            public_key=msg['pubkey'],
+            created_at=msg['created_at'],
+            kind=msg['kind'],
+            tags=msg['tags'],
+            signature=msg['sig'],
         )
+
+    def to_dict(self) -> dict:
+        return {
+                "id": self.id,
+                "pubkey": self.public_key,
+                "created_at": self.created_at,
+                "kind": self.kind,
+                "tags": self.tags,
+                "content": self.content,
+                "sig": self.signature
+                }
+
+    def to_message(self) -> str:
+        return json.dumps([ClientMessageType.EVENT, self.to_dict()])
 
 
 

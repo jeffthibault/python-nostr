@@ -3,9 +3,11 @@ import time
 from nostr.event import Event, EncryptedDirectMessage
 from nostr.key import PrivateKey
 
+import unittest
 
 
-class TestEvent:
+
+class TestEvent(unittest.TestCase):
     def test_event_default_time(self):
         """
             ensure created_at default value reflects the time at Event object instantiation
@@ -15,7 +17,7 @@ class TestEvent:
         time.sleep(1.5)
         event2 = Event(content='test event')
         assert event1.created_at < event2.created_at
-    
+
 
     def test_content_only_instantiation(self):
         """ should be able to create an Event by only specifying content without kwarg """
@@ -34,7 +36,7 @@ class TestEvent:
 
         # Recomputed id should now be different
         assert event.id != event_id
-    
+
 
     def test_add_event_ref(self):
         """ should add an 'e' tag for each event_ref added """
@@ -51,6 +53,16 @@ class TestEvent:
         event.add_pubkey_ref(some_pubkey)
         assert ['p', some_pubkey] in event.tags
 
+    def test_dict_roundtrip(self):
+        """ conversion to dict and back result in same object """
+        event = Event(content='test event',
+                      created_at=12345678,
+                      kind=1,
+                     )
+        event.add_pubkey_ref("some_pubkey")
+
+        got = Event.from_dict(event.to_dict())
+        self.assertEqual(got, event)
 
 
 class TestEncryptedDirectMessage:
@@ -66,19 +78,19 @@ class TestEncryptedDirectMessage:
         dm = EncryptedDirectMessage(content="My message!", recipient_pubkey=self.recipient_pubkey)
         assert dm.content is None
         assert dm.cleartext_content is not None
-    
+
 
     def test_nokwarg_content_allowed(self):
         """ Should allow creating a new DM w/no `content` nor `cleartext_content` kwarg """
         dm = EncryptedDirectMessage("My message!", recipient_pubkey=self.recipient_pubkey)
         assert dm.cleartext_content is not None
-    
+
 
     def test_recipient_p_tag(self):
         """ Should generate recipient 'p' tag """
         dm = EncryptedDirectMessage(cleartext_content="Secret message!", recipient_pubkey=self.recipient_pubkey)
         assert ['p', self.recipient_pubkey] in dm.tags
-    
+
 
     def test_unencrypted_dm_has_undefined_id(self):
         """ Should raise Exception if `id` is requested before DM is encrypted """

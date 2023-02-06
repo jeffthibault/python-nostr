@@ -103,14 +103,7 @@ class Relay:
                 if subscription_id not in self.subscriptions:
                     return False
 
-            e = message_json[2]
-            event = Event(
-                    content=e['content'],
-                    public_key=e['pubkey'],
-                    created_at=e['created_at'],
-                    kind=e['kind'],
-                    tags=e['tags'],
-                    signature=e['sig'])
+            event = Event.from_dict(message_json[2])
             if not event.verify():
                 return False
 
