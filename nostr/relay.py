@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 from threading import Lock
+from typing import Optional
 from websocket import WebSocketApp
 from .event import Event
 from .filter import Filters
@@ -23,9 +24,9 @@ class RelayPolicy:
 
 @dataclass
 class RelayProxyConnectionConfig:
-    host: str
-    port: int
-    type: str
+    host: Optional[str] = None
+    port: Optional[int] = None
+    type: Optional[str] = None
 
 
 
@@ -34,8 +35,8 @@ class Relay:
     url: str
     message_pool: MessagePool
     policy: RelayPolicy = RelayPolicy()
-    ssl_options: dict = None
-    proxy_config: RelayProxyConnectionConfig = None
+    proxy_config: RelayProxyConnectionConfig = RelayProxyConnectionConfig()
+    ssl_options: Optional[dict] = None
 
     def __post_init__(self):
         self.subscriptions: dict[str, Subscription] = {}
@@ -51,9 +52,9 @@ class Relay:
     def connect(self):
         self.ws.run_forever(
             sslopt=self.ssl_options,
-            http_proxy_host=None if self.proxy_config is None else self.proxy_config.host, 
-            http_proxy_port=None if self.proxy_config is None else self.proxy_config.port,
-            proxy_type=None if self.proxy_config is None else self.proxy_config.type
+            http_proxy_host=self.proxy_config.host, 
+            http_proxy_port=self.proxy_config.port,
+            proxy_type=self.proxy_config.type
         )
 
     def close(self):
@@ -68,8 +69,7 @@ class Relay:
 
     def close_subscription(self, id: str) -> None:
         with self.lock:
-            if id in self.subscriptions:
-                self.subscriptions.pop(id)
+            self.subscriptions.pop(id, None)
 
     def update_subscription(self, id: str, filters: Filters) -> None:
         with self.lock:
