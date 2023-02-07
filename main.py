@@ -96,8 +96,9 @@ async def post():
         sender_client.post(msg)
 
 
-# write a DM and receive DMs
-asyncio.run(dm())
-
-# make a post and subscribe to posts
-# asyncio.run(post())
+if input("Enter 1 for DM, 2 for Posts (Default: 1)") or 1 == 1:
+    # write a DM and receive DMs
+    asyncio.run(dm())
+else:
+    # make a post and subscribe to posts
+    asyncio.run(post())

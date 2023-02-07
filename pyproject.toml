@@ -1,3 +1,9 @@
+[tool.poetry]
+name = "python-nostr"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"

@@ -11,7 +11,7 @@ from ..message_type import ClientMessageType
 from ..key import PrivateKey, PublicKey
 
 from ..filter import Filter, Filters
-from ..event import Event, EventKind
+from ..event import Event, EventKind, EncryptedDirectMessage
 from ..relay_manager import RelayManager
 from ..message_type import ClientMessageType
 
@@ -37,13 +37,15 @@ class NostrClient:
 
         if len(relays):
             self.relays = relays
-
         if connect:
-            for relay in self.relays:
-                self.relay_manager.add_relay(relay)
-            self.relay_manager.open_connections(
-                {"cert_reqs": ssl.CERT_NONE}
-            )  # NOTE: This disables ssl certificate verification
+            self.connect()
+
+    def connect(self):
+        for relay in self.relays:
+            self.relay_manager.add_relay(relay)
+        self.relay_manager.open_connections(
+            {"cert_reqs": ssl.CERT_NONE}
+        )  # NOTE: This disables ssl certificate verification
 
     def close(self):
         self.relay_manager.close_connections()
@@ -54,10 +56,12 @@ class NostrClient:
         self.public_key = self.private_key.public_key
 
     def post(self, message: str):
-        event = Event(self.public_key.hex(), message, kind=EventKind.TEXT_NOTE)
-        event.sign(self.private_key.hex())
-        message = json.dumps([ClientMessageType.EVENT, event.to_json_object()])
-        self.relay_manager.publish_message(message)
+        event = Event(message, self.public_key.hex(), kind=EventKind.TEXT_NOTE)
+        self.private_key.sign_event(event)
+        event_json = event.to_message()
+        # print("Publishing message:")
+        # print(event_json)
+        self.relay_manager.publish_message(event_json)
 
     def get_post(
         self, sender_publickey: PublicKey = None, callback_func=None, filter_kwargs={}
@@ -79,32 +83,25 @@ class NostrClient:
         while True:
             while self.relay_manager.message_pool.has_events():
                 event_msg = self.relay_manager.message_pool.get_event()
-                print(event_msg.event.content)
                 if callback_func:
                     callback_func(event_msg.event)
             time.sleep(0.1)
 
     def dm(self, message: str, to_pubkey: PublicKey):
-        shared_secret = self.private_key.compute_shared_secret(to_pubkey.hex())
-        aes = cbc.AESCipher(key=shared_secret)
-        iv, enc_text = aes.encrypt(message)
-        content = f"{base64.b64encode(enc_text).decode('utf-8')}?iv={base64.b64encode(iv).decode('utf-8')}"
-
-        event = Event(
-            self.public_key.hex(),
-            content,
-            tags=[["p", to_pubkey.hex()]],
-            kind=EventKind.ENCRYPTED_DIRECT_MESSAGE,
+        dm = EncryptedDirectMessage(
+            recipient_pubkey=to_pubkey.hex(), cleartext_content=message
         )
-        event.sign(self.private_key.hex())
-        event_message = json.dumps([ClientMessageType.EVENT, event.to_json_object()])
-        self.relay_manager.publish_message(event_message)
+        self.private_key.sign_event(dm)
+        self.relay_manager.publish_event(dm)
 
-    def get_dm(self, sender_publickey: PublicKey, callback_func=None, filter_kwargs={}):
-        filter = Filter(
-            kinds=[EventKind.ENCRYPTED_DIRECT_MESSAGE],
-            tags={"#p": [sender_publickey.hex()]},
-            **filter_kwargs,
+    def get_dm(self, sender_publickey: PublicKey, callback_func=None):
+        filters = Filters(
+            [
+                Filter(
+                    kinds=[EventKind.ENCRYPTED_DIRECT_MESSAGE],
+                    pubkey_refs=[sender_publickey.hex()],
+                )
+            ]
         )
         filters = Filters([filter])
         subscription_id = os.urandom(4).hex()
@@ -139,6 +136,5 @@ class NostrClient:
         while True:
             while self.relay_manager.message_pool.has_events():
                 event_msg = self.relay_manager.message_pool.get_event()
-                print(event_msg.event.content)
                 break
             time.sleep(0.1)

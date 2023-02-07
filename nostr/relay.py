@@ -38,6 +38,7 @@ class Relay:
         self.num_sent_events: int = 0
         self.num_subscriptions: int = 0
         self.ssl_options: dict = {}
+        self.proxy: dict = {}
         self.lock = Lock()
         self.ws = WebSocketApp(
             url,
@@ -49,19 +50,16 @@ class Relay:
             on_pong=self._on_pong,
         )
 
-    def connect(self, ssl_options: dict=None, proxy: dict=None):
+    def connect(self, ssl_options: dict = None, proxy: dict = None):
         self.ssl_options = ssl_options
-<<<<<<< HEAD
         print(self.url, "🟢")
-        self.ws.run_forever(sslopt=self.ssl_options)
-=======
+        self.proxy = proxy
         self.ws.run_forever(
             sslopt=ssl_options,
-            http_proxy_host=None if proxy is None else proxy.get('host'), 
-            http_proxy_port=None if proxy is None else proxy.get('port'),
-            proxy_type=None if proxy is None else proxy.get('type')
+            http_proxy_host=None if proxy is None else proxy.get("host"),
+            http_proxy_port=None if proxy is None else proxy.get("port"),
+            proxy_type=None if proxy is None else proxy.get("type"),
         )
->>>>>>> main
 
     def close(self):
         print(self.url, "🔴")
@@ -75,7 +73,7 @@ class Relay:
         self.connected = False
         if self.reconnect:
             time.sleep(1)
-            self.connect(self.ssl_options)
+            self.connect(self.ssl_options, self.proxy)
 
     @property
     def ping(self):
@@ -164,12 +162,11 @@ class Relay:
 
             e = message_json[2]
             event = Event(
-                e["pubkey"],
                 e["content"],
+                e["pubkey"],
                 e["created_at"],
                 e["kind"],
                 e["tags"],
-                e["id"],
                 e["sig"],
             )
             if not event.verify():
