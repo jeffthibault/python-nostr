@@ -18,7 +18,7 @@ async def dm():
         )
 
     client = NostrClient(privatekey_hex=pk)
-    await asyncio.sleep(1)
+    # await asyncio.sleep(1)
 
     t = threading.Thread(
         target=client.get_dm,
@@ -50,7 +50,7 @@ async def post():
         print(f"From {event.public_key[:3]}..{event.public_key[-3:]}: {event.content}")
 
     sender_client = NostrClient(privatekey_hex=pk)
-    await asyncio.sleep(1)
+    # await asyncio.sleep(1)
 
     to_pubk_hex = (
         input("Enter other pubkey (enter nothing to read your own posts): ")
