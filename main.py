@@ -74,7 +74,7 @@ async def post():
 
 
 # write a DM and receive DMs
-# asyncio.run(dm())
+asyncio.run(dm())
 
 # make a post and subscribe to posts
-asyncio.run(post())
+# asyncio.run(post())

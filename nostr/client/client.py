@@ -21,8 +21,9 @@ from . import cbc
 
 class NostrClient:
     relays = [
-        "wss://nostr-pub.wellorder.net",
-        "wss://nostr.zebedee.cloud",
+        "wss://lnbits.link/nostrrelay/client"
+        # "wss://nostr-pub.wellorder.net",
+        # "wss://nostr.zebedee.cloud",
         # "wss://no.str.cr",
     ]  # ["wss://nostr.oxtr.dev"]  # ["wss://relay.nostr.info"] "wss://nostr-pub.wellorder.net"  "ws://91.237.88.218:2700", "wss://nostrrr.bublina.eu.org", ""wss://nostr-relay.freeberty.net"", , "wss://nostr.oxtr.dev", "wss://relay.nostr.info", "wss://nostr-pub.wellorder.net" , "wss://relayer.fiatjaf.com", "wss://nodestr.fmt.wiz.biz/", "wss://no.str.cr"
     relay_manager = RelayManager()
@@ -56,7 +57,7 @@ class NostrClient:
 
     def post(self, message: str):
         event = Event(self.public_key.hex(), message, kind=EventKind.TEXT_NOTE)
-        event.signature = self.private_key.sign_event(event)
+        self.private_key.sign_event(event)
         message = json.dumps([ClientMessageType.EVENT, event.to_message()])
         # print("Publishing message:")
         # print(message)
@@ -101,7 +102,7 @@ class NostrClient:
             tags=[["p", to_pubkey.hex()]],
             kind=EventKind.ENCRYPTED_DIRECT_MESSAGE,
         )
-        event.signature = self.private_key.sign_event(event)
+        self.private_key.sign_event(event)
         event_message = json.dumps([ClientMessageType.EVENT, event.to_message()])
         # print("DM message:")
         # print(event_message)
