@@ -1,5 +1,7 @@
 import json
+from dataclasses import dataclass
 from threading import Lock
+from typing import Optional
 from websocket import WebSocketApp
 from .event import Event
 from .filter import Filters
@@ -7,42 +9,52 @@ from .message_pool import MessagePool
 from .message_type import RelayMessageType
 from .subscription import Subscription
 
+@dataclass
 class RelayPolicy:
-    def __init__(self, should_read: bool=True, should_write: bool=True) -> None:
-        self.should_read = should_read
-        self.should_write = should_write
-
+    should_read: bool = True
+    should_write: bool = True
+    
     def to_json_object(self) -> dict[str, bool]:
         return { 
             "read": self.should_read, 
             "write": self.should_write
         }
 
+
+
+@dataclass
+class RelayProxyConnectionConfig:
+    host: Optional[str] = None
+    port: Optional[int] = None
+    type: Optional[str] = None
+
+
+
+@dataclass
 class Relay:
-    def __init__(
-            self, 
-            url: str, 
-            policy: RelayPolicy, 
-            message_pool: MessagePool,
-            subscriptions: dict[str, Subscription]={}) -> None:
-        self.url = url
-        self.policy = policy
-        self.message_pool = message_pool
-        self.subscriptions = subscriptions
-        self.lock = Lock()
-        self.ws = WebSocketApp(
-            url,
+    url: str
+    message_pool: MessagePool
+    policy: RelayPolicy = RelayPolicy()
+    proxy_config: RelayProxyConnectionConfig = RelayProxyConnectionConfig()
+    ssl_options: Optional[dict] = None
+
+    def __post_init__(self):
+        self.subscriptions: dict[str, Subscription] = {}
+        self.lock: Lock = Lock()
+        self.ws: WebSocketApp = WebSocketApp(
+            self.url,
             on_open=self._on_open,
             on_message=self._on_message,
             on_error=self._on_error,
-            on_close=self._on_close)
+            on_close=self._on_close
+        )
 
-    def connect(self, ssl_options: dict=None, proxy: dict=None):
+    def connect(self):
         self.ws.run_forever(
-            sslopt=ssl_options,
-            http_proxy_host=None if proxy is None else proxy.get('host'), 
-            http_proxy_port=None if proxy is None else proxy.get('port'),
-            proxy_type=None if proxy is None else proxy.get('type')
+            sslopt=self.ssl_options,
+            http_proxy_host=self.proxy_config.host, 
+            http_proxy_port=self.proxy_config.port,
+            proxy_type=self.proxy_config.type
         )
 
     def close(self):
@@ -57,7 +69,7 @@ class Relay:
 
     def close_subscription(self, id: str) -> None:
         with self.lock:
-            self.subscriptions.pop(id)
+            self.subscriptions.pop(id, None)
 
     def update_subscription(self, id: str, filters: Filters) -> None:
         with self.lock:
@@ -78,8 +90,7 @@ class Relay:
         pass
 
     def _on_message(self, class_obj, message: str):
-        if self._is_valid_message(message):
-            self.message_pool.add_message(message, self.url)
+        self.message_pool.add_message(message, self.url)
     
     def _on_error(self, class_obj, error):
         pass
