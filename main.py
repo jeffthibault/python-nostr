@@ -34,7 +34,6 @@ async def dm():
         args=(
             client.public_key,
             callback,
-            filters,
         ),
     )
     t.start()

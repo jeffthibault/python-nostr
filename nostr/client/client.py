@@ -21,7 +21,7 @@ from . import cbc
 
 class NostrClient:
     relays = [
-        "wss://relay.snort.social",
+        # "wss://relay.snort.social",
         "wss://nostr-pub.wellorder.net",
         "wss://nostr.zebedee.cloud",
         "wss://nostr.mom",
@@ -103,7 +103,6 @@ class NostrClient:
                 )
             ]
         )
-        filters = Filters([filter])
         subscription_id = os.urandom(4).hex()
         self.relay_manager.add_subscription(subscription_id, filters)
 
