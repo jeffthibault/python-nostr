@@ -135,12 +135,11 @@ class Relay:
 
             e = message_json[2]
             event = Event(
-                e["pubkey"],
                 e["content"],
+                e["pubkey"],
                 e["created_at"],
                 e["kind"],
                 e["tags"],
-                e["id"],
                 e["sig"],
             )
             if not event.verify():
