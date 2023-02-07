@@ -1,5 +1,6 @@
 import json
 import time
+from queue import Queue
 from threading import Lock
 from websocket import WebSocketApp
 from .event import Event
@@ -34,15 +35,21 @@ class Relay:
         self.reconnect: bool = True
         self.error_counter: int = 0
         self.error_threshold: int = 0
+        self.num_received_events: int = 0
+        self.num_sent_events: int = 0
+        self.num_subscriptions: int = 0
         self.ssl_options: dict = {}
         self.proxy: dict = {}
         self.lock = Lock()
+        self.queue = Queue()
         self.ws = WebSocketApp(
             url,
             on_open=self._on_open,
             on_message=self._on_message,
             on_error=self._on_error,
             on_close=self._on_close,
+            on_ping=self._on_ping,
+            on_pong=self._on_pong,
         )
 
     def connect(self, ssl_options: dict = None, proxy: dict = None):
@@ -53,6 +60,7 @@ class Relay:
             http_proxy_host=None if proxy is None else proxy.get("host"),
             http_proxy_port=None if proxy is None else proxy.get("port"),
             proxy_type=None if proxy is None else proxy.get("type"),
+            ping_interval=5,
         )
 
     def close(self):
@@ -68,9 +76,24 @@ class Relay:
             time.sleep(1)
             self.connect(self.ssl_options, self.proxy)
 
-    def publish(self, message: str):
+    @property
+    def ping(self):
         if self.connected:
-            self.ws.send(message)
+            return int((self.ws.last_pong_tm - self.ws.last_ping_tm) * 1000)
+        else:
+            return 0
+
+    def publish(self, message: str):
+        self.queue.put(message)
+
+    def queue_worker(self):
+        while True:
+            if self.connected:
+                message = self.queue.get()
+                self.num_sent_events += 1
+                self.ws.send(message)
+            else:
+                time.sleep(0.1)
 
     def add_subscription(self, id, filters: Filters):
         with self.lock:
@@ -105,6 +128,7 @@ class Relay:
 
     def _on_message(self, class_obj, message: str):
         if self._is_valid_message(message):
+            self.num_received_events += 1
             self.message_pool.add_message(message, self.url)
 
     def _on_error(self, class_obj, error):
@@ -114,6 +138,12 @@ class Relay:
             pass
         else:
             self.check_reconnect()
+
+    def _on_ping(self, class_obj, message):
+        return
+
+    def _on_pong(self, class_obj, message):
+        return
 
     def _is_valid_message(self, message: str) -> bool:
         message = message.strip("\n")

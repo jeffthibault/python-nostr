@@ -21,10 +21,10 @@ from . import cbc
 
 class NostrClient:
     relays = [
-        # "wss://lnbits.link/nostrrelay/client"
+        "wss://lnbits.link/nostrrelay/client",
         "wss://nostr-pub.wellorder.net",
-        # "wss://nostr.zebedee.cloud",
-        # "wss://no.str.cr",
+        "wss://nostr.zebedee.cloud",
+        "wss://no.str.cr",
     ]  # ["wss://nostr.oxtr.dev"]  # ["wss://relay.nostr.info"] "wss://nostr-pub.wellorder.net"  "ws://91.237.88.218:2700", "wss://nostrrr.bublina.eu.org", ""wss://nostr-relay.freeberty.net"", , "wss://nostr.oxtr.dev", "wss://relay.nostr.info", "wss://nostr-pub.wellorder.net" , "wss://relayer.fiatjaf.com", "wss://nodestr.fmt.wiz.biz/", "wss://no.str.cr"
     relay_manager = RelayManager()
     private_key: PrivateKey
@@ -44,6 +44,7 @@ class NostrClient:
         self.relay_manager.open_connections(
             {"cert_reqs": ssl.CERT_NONE}
         )  # NOTE: This disables ssl certificate verification
+        self.relay_manager.start_message_workers()
 
     def close(self):
         self.relay_manager.close_connections()
@@ -52,10 +53,6 @@ class NostrClient:
         pk = bytes.fromhex(privatekey_hex) if privatekey_hex else None
         self.private_key = PrivateKey(pk)
         self.public_key = self.private_key.public_key
-        # print(
-        #     f"Nostr private key: {self.private_key.hex()} ({self.private_key.bech32()})"
-        # )
-        # print(f"Nostr public key: {self.public_key.hex()} ({self.public_key.bech32()})")
 
     def post(self, message: str):
         event = Event(message, self.public_key.hex(), kind=EventKind.TEXT_NOTE)
@@ -65,18 +62,21 @@ class NostrClient:
         # print(event_json)
         self.relay_manager.publish_message(event_json)
 
-    def get_post(self, sender_publickey: PublicKey, callback_func=None):
-        filters = Filters(
-            [Filter(authors=[sender_publickey.hex()], kinds=[EventKind.TEXT_NOTE])]
+    def get_post(
+        self, sender_publickey: PublicKey = None, callback_func=None, filter_kwargs={}
+    ):
+        filter = Filter(
+            authors=[sender_publickey.hex()] if sender_publickey else None,
+            kinds=[EventKind.TEXT_NOTE],
+            **filter_kwargs,
         )
+        filters = Filters([filter])
         subscription_id = os.urandom(4).hex()
         self.relay_manager.add_subscription(subscription_id, filters)
 
         request = [ClientMessageType.REQUEST, subscription_id]
         request.extend(filters.to_json_array())
         message = json.dumps(request)
-        # print("Subscribing to events:")
-        # print(message)
         self.relay_manager.publish_message(message)
 
         while True:
@@ -108,8 +108,6 @@ class NostrClient:
         request = [ClientMessageType.REQUEST, subscription_id]
         request.extend(filters.to_json_array())
         message = json.dumps(request)
-        # print("Subscribing to events:")
-        # print(message)
         self.relay_manager.publish_message(message)
 
         while True:
@@ -120,21 +118,15 @@ class NostrClient:
                         shared_secret = self.private_key.compute_shared_secret(
                             event_msg.event.public_key
                         )
-                        # print("shared secret: ", shared_secret.hex())
-                        # print("plain text:", message)
                         aes = cbc.AESCipher(key=shared_secret)
                         enc_text_b64, iv_b64 = event_msg.event.content.split("?iv=")
                         iv = base64.decodebytes(iv_b64.encode("utf-8"))
                         enc_text = base64.decodebytes(enc_text_b64.encode("utf-8"))
-                        # print("decrypt iv: ", iv)
                         dec_text = aes.decrypt(iv, enc_text)
-                        # print(f"From {event_msg.event.public_key[:5]}...: {dec_text}")
                         if callback_func:
                             callback_func(event_msg.event, dec_text)
                     except:
                         pass
-                # else:
-                # print(f"\nFrom {event_msg.event.public_key[:5]}...: {event_msg.event.content}")
                 break
             time.sleep(0.1)
 
