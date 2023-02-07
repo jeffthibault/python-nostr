@@ -35,13 +35,15 @@ class NostrClient:
 
         if len(relays):
             self.relays = relays
-
         if connect:
-            for relay in self.relays:
-                self.relay_manager.add_relay(relay)
-            self.relay_manager.open_connections(
-                {"cert_reqs": ssl.CERT_NONE}
-            )  # NOTE: This disables ssl certificate verification
+            self.connect()
+
+    def connect(self):
+        for relay in self.relays:
+            self.relay_manager.add_relay(relay)
+        self.relay_manager.open_connections(
+            {"cert_reqs": ssl.CERT_NONE}
+        )  # NOTE: This disables ssl certificate verification
 
     def close(self):
         self.relay_manager.close_connections()
