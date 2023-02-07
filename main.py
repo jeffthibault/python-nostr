@@ -20,15 +20,7 @@ async def dm():
         )
 
     client = NostrClient(privatekey_hex=pk)
-
-    filters = {
-        "since": int(
-            time.mktime(
-                (datetime.datetime.now() - datetime.timedelta(hours=1)).timetuple()
-            )
-        )
-    }
-
+    # await asyncio.sleep(1)
     t = threading.Thread(
         target=client.get_dm,
         args=(
@@ -59,6 +51,7 @@ async def post():
         print(f"From {event.public_key[:3]}..{event.public_key[-3:]}: {event.content}")
 
     sender_client = NostrClient(privatekey_hex=pk)
+    # await asyncio.sleep(1)
 
     to_pubk_hex = (
         input(

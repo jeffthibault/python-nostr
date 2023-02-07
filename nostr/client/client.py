@@ -21,12 +21,10 @@ from . import cbc
 
 class NostrClient:
     relays = [
-        # "wss://relay.snort.social",
+        "wss://lnbits.link/nostrrelay/client",
         "wss://nostr-pub.wellorder.net",
         "wss://nostr.zebedee.cloud",
-        "wss://nostr.mom",
-        # "wss://wss://lnbits.link/nostrrelay/client"
-        # "wss://no.str.cr",
+        "wss://no.str.cr",
     ]  # ["wss://nostr.oxtr.dev"]  # ["wss://relay.nostr.info"] "wss://nostr-pub.wellorder.net"  "ws://91.237.88.218:2700", "wss://nostrrr.bublina.eu.org", ""wss://nostr-relay.freeberty.net"", , "wss://nostr.oxtr.dev", "wss://relay.nostr.info", "wss://nostr-pub.wellorder.net" , "wss://relayer.fiatjaf.com", "wss://nodestr.fmt.wiz.biz/", "wss://no.str.cr"
     relay_manager = RelayManager()
     private_key: PrivateKey
@@ -46,6 +44,7 @@ class NostrClient:
         self.relay_manager.open_connections(
             {"cert_reqs": ssl.CERT_NONE}
         )  # NOTE: This disables ssl certificate verification
+        self.relay_manager.start_message_workers()
 
     def close(self):
         self.relay_manager.close_connections()
