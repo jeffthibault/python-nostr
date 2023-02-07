@@ -11,7 +11,7 @@ from ..message_type import ClientMessageType
 from ..key import PrivateKey, PublicKey
 
 from ..filter import Filter, Filters
-from ..event import Event, EventKind
+from ..event import Event, EventKind, EncryptedDirectMessage
 from ..relay_manager import RelayManager
 from ..message_type import ClientMessageType
 
@@ -21,8 +21,8 @@ from . import cbc
 
 class NostrClient:
     relays = [
-        "wss://lnbits.link/nostrrelay/client"
-        # "wss://nostr-pub.wellorder.net",
+        # "wss://lnbits.link/nostrrelay/client"
+        "wss://nostr-pub.wellorder.net",
         # "wss://nostr.zebedee.cloud",
         # "wss://no.str.cr",
     ]  # ["wss://nostr.oxtr.dev"]  # ["wss://relay.nostr.info"] "wss://nostr-pub.wellorder.net"  "ws://91.237.88.218:2700", "wss://nostrrr.bublina.eu.org", ""wss://nostr-relay.freeberty.net"", , "wss://nostr.oxtr.dev", "wss://relay.nostr.info", "wss://nostr-pub.wellorder.net" , "wss://relayer.fiatjaf.com", "wss://nodestr.fmt.wiz.biz/", "wss://no.str.cr"
@@ -56,12 +56,12 @@ class NostrClient:
         # print(f"Nostr public key: {self.public_key.hex()} ({self.public_key.bech32()})")
 
     def post(self, message: str):
-        event = Event(self.public_key.hex(), message, kind=EventKind.TEXT_NOTE)
+        event = Event(message, self.public_key.hex(), kind=EventKind.TEXT_NOTE)
         self.private_key.sign_event(event)
-        message = json.dumps([ClientMessageType.EVENT, event.to_message()])
+        event_json = event.to_message()
         # print("Publishing message:")
-        # print(message)
-        self.relay_manager.publish_message(message)
+        # print(event_json)
+        self.relay_manager.publish_message(event_json)
 
     def get_post(self, sender_publickey: PublicKey, callback_func=None):
         filters = Filters(
@@ -80,42 +80,23 @@ class NostrClient:
         while True:
             while self.relay_manager.message_pool.has_events():
                 event_msg = self.relay_manager.message_pool.get_event()
-                print(event_msg.event.content)
                 if callback_func:
                     callback_func(event_msg.event)
             time.sleep(0.1)
 
     def dm(self, message: str, to_pubkey: PublicKey):
-
-        shared_secret = self.private_key.compute_shared_secret(to_pubkey.hex())
-
-        # print("shared secret: ", shared_secret.hex())
-        # print("plain text:", message)
-        aes = cbc.AESCipher(key=shared_secret)
-        iv, enc_text = aes.encrypt(message)
-        # print("encrypt iv: ", iv)
-        content = f"{base64.b64encode(enc_text).decode('utf-8')}?iv={base64.b64encode(iv).decode('utf-8')}"
-
-        event = Event(
-            self.public_key.hex(),
-            content,
-            tags=[["p", to_pubkey.hex()]],
-            kind=EventKind.ENCRYPTED_DIRECT_MESSAGE,
+        dm = EncryptedDirectMessage(
+            recipient_pubkey=to_pubkey.hex(), cleartext_content=message
         )
-        self.private_key.sign_event(event)
-        event_message = json.dumps([ClientMessageType.EVENT, event.to_message()])
-        # print("DM message:")
-        # print(event_message)
-
-        time.sleep(1)
-        self.relay_manager.publish_message(event_message)
+        self.private_key.sign_event(dm)
+        self.relay_manager.publish_event(dm)
 
     def get_dm(self, sender_publickey: PublicKey, callback_func=None):
         filters = Filters(
             [
                 Filter(
                     kinds=[EventKind.ENCRYPTED_DIRECT_MESSAGE],
-                    pubkey_refs={"#p": [sender_publickey.hex()]},
+                    pubkey_refs=[sender_publickey.hex()],
                 )
             ]
         )
@@ -159,6 +140,5 @@ class NostrClient:
         while True:
             while self.relay_manager.message_pool.has_events():
                 event_msg = self.relay_manager.message_pool.get_event()
-                print(event_msg.event.content)
                 break
             time.sleep(0.1)
