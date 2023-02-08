@@ -7,6 +7,14 @@ import time
 import datetime
 
 
+def print_status(client):
+    print("")
+    for relay in client.relay_manager.relays.values():
+        connected_text = "🟢" if relay.connected else "🔴"
+        status_text = f"{connected_text} ⬆️ {relay.num_sent_events} ⬇️ {relay.num_received_events} ⚠️ {relay.error_counter} ⏱️ {relay.ping} ms - {relay.url.split('//')[1]}"
+        print(status_text)
+
+
 async def dm():
     print("This is an example NIP-04 DM flow")
     pk = input("Enter your privatekey to post from (enter nothing for a random one): ")
@@ -36,6 +44,7 @@ async def dm():
     )
     print(f"Subscribing to DMs to {to_pubk_hex}")
     while True:
+        print_status(client)
         msg = input("\nEnter message: ")
         client.dm(msg, PublicKey(bytes.fromhex(to_pubk_hex)))
 
@@ -84,11 +93,12 @@ async def post():
     t.start()
 
     while True:
+        print_status(sender_client)
         msg = input("\nEnter post: ")
         sender_client.post(msg)
 
 
-if input("Enter 1 for DM, 2 for Posts (Default: 1)") or 1 == 1:
+if input("Enter '1' for DM, '2' for Posts (Default: 1):") or 1 == 1:
     # write a DM and receive DMs
     asyncio.run(dm())
 else:

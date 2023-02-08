@@ -78,10 +78,8 @@ class Relay:
 
     @property
     def ping(self):
-        if self.connected:
-            return int((self.ws.last_pong_tm - self.ws.last_ping_tm) * 1000)
-        else:
-            return 0
+        ping_ms = int((self.ws.last_pong_tm - self.ws.last_ping_tm) * 1000)
+        return ping_ms if self.connected and ping_ms > 0 else 0
 
     def publish(self, message: str):
         self.queue.put(message)
