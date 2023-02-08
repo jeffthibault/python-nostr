@@ -6,7 +6,7 @@ from typing import List
 from secp256k1 import PrivateKey, PublicKey
 from hashlib import sha256
 
-from nostr.message_type import ClientMessageType
+from .message_type import ClientMessageType
 
 
 
