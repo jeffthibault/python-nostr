@@ -43,8 +43,6 @@ class RelayManager:
                 name=f"{relay.url}-thread",
             ).start()
 
-    def start_message_workers(self):
-        for relay in self.relays.values():
             threading.Thread(
                 target=relay.queue_worker,
                 name=f"{relay.url}-queue",

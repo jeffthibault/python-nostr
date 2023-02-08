@@ -44,7 +44,6 @@ class NostrClient:
         self.relay_manager.open_connections(
             {"cert_reqs": ssl.CERT_NONE}
         )  # NOTE: This disables ssl certificate verification
-        self.relay_manager.start_message_workers()
 
     def close(self):
         self.relay_manager.close_connections()
