@@ -34,11 +34,15 @@ class RelayProxyConnectionConfig:
 class Relay:
     url: str
     message_pool: MessagePool
-    policy: RelayPolicy = RelayPolicy()
-    proxy_config: RelayProxyConnectionConfig = RelayProxyConnectionConfig()
+    policy: RelayPolicy = None 
+    proxy_config: RelayProxyConnectionConfig = None
     ssl_options: Optional[dict] = None
 
     def __post_init__(self):
+        if self.policy is None:
+            self.policy = RelayPolicy()
+        if self.proxy_config is None:
+            self.proxy_config = RelayProxyConnectionConfig()
         self.subscriptions: dict[str, Subscription] = {}
         self.lock: Lock = Lock()
         self.ws: WebSocketApp = WebSocketApp(

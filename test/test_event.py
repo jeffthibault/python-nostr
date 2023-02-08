@@ -1,6 +1,8 @@
+from collections import namedtuple
 import pytest
 import time
-from nostr.event import Event, EncryptedDirectMessage
+from nostr.event import Event, EncryptedDirectMessage, ReportEvent, ReportType
+from nostr.exceptions import EventValidationException
 from nostr.key import PrivateKey
 
 
@@ -78,7 +80,6 @@ class TestEncryptedDirectMessage:
         """ Should generate recipient 'p' tag """
         dm = EncryptedDirectMessage(cleartext_content="Secret message!", recipient_pubkey=self.recipient_pubkey)
         assert ['p', self.recipient_pubkey] in dm.tags
-    
 
     def test_unencrypted_dm_has_undefined_id(self):
         """ Should raise Exception if `id` is requested before DM is encrypted """
@@ -91,3 +92,29 @@ class TestEncryptedDirectMessage:
         # But once we encrypt it, we can request its id
         self.sender_pk.encrypt_dm(dm)
         assert dm.id is not None
+
+class TestReportEvent:
+    def test_report_type(self):
+        """ Should not let users instantiate a new ReportEvent without valid data"""
+        pub_key = PrivateKey().public_key.hex()
+        reported_pubkey = PrivateKey().public_key.hex()
+        with pytest.raises(EventValidationException) as invalid_type_exception:
+            ReportEvent(pub_key, "this was a bad note!", report_type="invalidtype", reported_pubkey=reported_pubkey)
+        with pytest.raises(EventValidationException) as no_reported_pubkey:
+            ReportEvent(pub_key, report_type=ReportType.NUDITY)
+        assert "valid report type" in str(invalid_type_exception)
+        assert "user being reported" in str(no_reported_pubkey)
+
+    def test_report_tags(self):
+        """ Should generate report-specific tags """
+        report = ReportEvent(
+            public_key="pubkey",
+            reported_pubkey=PrivateKey().public_key.hex(),
+            note_id="fakenoteid",
+            report_type=ReportType.ILLEGAL,
+            victim_pubkey="thevictim"
+        )
+        assert len(report.tags) == 3
+        tag_types = [tag[0] for tag in report.tags]
+        print(tag_types)
+        assert tag_types == ["e", "p", "p"]

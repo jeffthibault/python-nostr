@@ -1,11 +1,12 @@
 import time
 import json
 from dataclasses import dataclass, field
-from enum import IntEnum
+from enum import Enum, IntEnum
 from typing import List
-from secp256k1 import PrivateKey, PublicKey
+from secp256k1 import PublicKey
 from hashlib import sha256
 
+from .exceptions import EventValidationException
 from .message_type import ClientMessageType
 
 
@@ -17,6 +18,7 @@ class EventKind(IntEnum):
     CONTACTS = 3
     ENCRYPTED_DIRECT_MESSAGE = 4
     DELETE = 5
+    REPORT = 1984
 
 
 
@@ -121,3 +123,39 @@ class EncryptedDirectMessage(Event):
         if self.content is None:
             raise Exception("EncryptedDirectMessage `id` is undefined until its message is encrypted and stored in the `content` field")
         return super().id
+
+
+class ReportType(Enum):
+    NUDITY = 'nudity'
+    PROFANITY = 'profanity'
+    ILLEGAL = 'illegal'
+    SPAM = 'spam'
+    IMPERSONATION = 'impersonation'
+
+@dataclass
+class ReportEvent(Event):
+    """
+        NIP-56 reporting event
+    """
+    reported_pubkey: str = None
+    note_id: str = None
+    report_type: ReportType = None
+    victim_pubkey: str = None
+
+    def __post_init__(self):
+        if self.reported_pubkey is None:
+            raise EventValidationException("Reports require the pubkey of the user being reported")
+        if self.report_type is None or not isinstance(self.report_type, ReportType):
+            raise EventValidationException("Reports require a valid report type")
+        self.kind = EventKind.REPORT
+        super().__post_init__()
+        self.tags = self.tags + self._build_tags()
+
+    def _build_tags(self) -> List[List[str]]:
+        report_tags = []
+        if self.note_id:
+            report_tags.append(["e", self.note_id, self.report_type])
+        report_tags.append(["p", self.reported_pubkey, self.report_type])
+        if self.victim_pubkey:
+            report_tags.append(["p", self.victim_pubkey])
+        return report_tags
