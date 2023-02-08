@@ -42,6 +42,11 @@ class RelayManager:
                 args=(ssl_options, proxy),
                 name=f"{relay.url}-thread"
             ).start()
+            
+            threading.Thread(
+                target=relay.queue_worker,
+                name=f"{relay.url}-queue",
+            ).start()
 
     def close_connections(self):
         for relay in self.relays.values():
