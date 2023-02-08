@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import List
-from secp256k1 import PrivateKey, PublicKey
+from secp256k1 import PublicKey
 from hashlib import sha256
 
 from .message_type import ClientMessageType
