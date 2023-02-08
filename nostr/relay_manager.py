@@ -28,10 +28,12 @@ class RelayManager:
     def add_relay(
             self, 
             url: str, 
-            policy: RelayPolicy = RelayPolicy(),
+            policy: RelayPolicy = None,
             ssl_options: dict = None,
             proxy_config: RelayProxyConnectionConfig = None):
 
+        if RelayPolicy is None:
+            policy = RelayPolicy()
         relay = Relay(url, self.message_pool, policy, ssl_options, proxy_config)
 
         with self.lock:
