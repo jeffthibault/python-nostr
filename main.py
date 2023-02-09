@@ -24,7 +24,7 @@ async def dm():
         Callback to trigger when a DM is received.
         """
         print(
-            f"From {event.public_key[:3]}..{event.public_key[-3:]}: {decrypted_content}"
+            f"\nFrom {event.public_key[:3]}..{event.public_key[-3:]}: {decrypted_content}"
         )
 
     client = NostrClient(privatekey_hex=pk)
@@ -45,6 +45,7 @@ async def dm():
     print(f"Subscribing to DMs to {to_pubk_hex}")
     while True:
         print_status(client)
+        await asyncio.sleep(1)
         msg = input("\nEnter message: ")
         client.dm(msg, PublicKey(bytes.fromhex(to_pubk_hex)))
 
@@ -57,7 +58,9 @@ async def post():
         """
         Callback to trigger when post appers.
         """
-        print(f"From {event.public_key[:3]}..{event.public_key[-3:]}: {event.content}")
+        print(
+            f"\nFrom {event.public_key[:3]}..{event.public_key[-3:]}: {event.content}"
+        )
 
     sender_client = NostrClient(privatekey_hex=pk)
     # await asyncio.sleep(1)
@@ -94,6 +97,7 @@ async def post():
 
     while True:
         print_status(sender_client)
+        await asyncio.sleep(1)
         msg = input("\nEnter post: ")
         sender_client.post(msg)
 
