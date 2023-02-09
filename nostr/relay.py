@@ -55,13 +55,14 @@ class Relay:
     def connect(self, ssl_options: dict = None, proxy: dict = None):
         self.ssl_options = ssl_options
         self.proxy = proxy
-        self.ws.run_forever(
-            sslopt=ssl_options,
-            http_proxy_host=None if proxy is None else proxy.get("host"),
-            http_proxy_port=None if proxy is None else proxy.get("port"),
-            proxy_type=None if proxy is None else proxy.get("type"),
-            ping_interval=5,
-        )
+        if not self.connected:
+            self.ws.run_forever(
+                sslopt=ssl_options,
+                http_proxy_host=None if proxy is None else proxy.get("host"),
+                http_proxy_port=None if proxy is None else proxy.get("port"),
+                proxy_type=None if proxy is None else proxy.get("type"),
+                ping_interval=5,
+            )
 
     def close(self):
         self.ws.close()
