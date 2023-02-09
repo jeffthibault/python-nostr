@@ -129,9 +129,10 @@ class NostrClient:
                 break
             time.sleep(0.1)
 
-    async def subscribe(self):
+    async def subscribe(self, callback_func=None):
         while True:
             while self.relay_manager.message_pool.has_events():
                 event_msg = self.relay_manager.message_pool.get_event()
-                break
+                if callback_func:
+                    callback_func(event_msg.event)
             time.sleep(0.1)

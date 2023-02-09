@@ -28,6 +28,11 @@ async def dm():
         )
 
     client = NostrClient(privatekey_hex=pk)
+    if not pk:
+        print(f"Your private key: {client.private_key.hex()}")
+
+    print(f"Your public key: {client.public_key.hex()}")
+
     # await asyncio.sleep(1)
     t = threading.Thread(
         target=client.get_dm,
