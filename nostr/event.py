@@ -1,13 +1,12 @@
-from binascii import unhexlify
 import time
 import json
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import List
-from secp256k1 import PrivateKey, PublicKey
+from secp256k1 import PublicKey
 from hashlib import sha256
-from nostr import bech32
 
+from . import bech32
 from .message_type import ClientMessageType
 
 
@@ -61,7 +60,7 @@ class Event:
 
     @property
     def note_id(self) -> str:
-        converted_bits = bech32.convertbits(unhexlify(self.id), 8, 5)
+        converted_bits = bech32.convertbits(bytes.fromhex(self.id), 8, 5)
         return bech32.bech32_encode("note", converted_bits, bech32.Encoding.BECH32)
 
 

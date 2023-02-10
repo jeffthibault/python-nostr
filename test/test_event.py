@@ -1,6 +1,6 @@
-from binascii import hexlify
 import pytest
 import time
+
 from nostr import bech32
 from nostr.event import Event, EncryptedDirectMessage
 from nostr.key import PrivateKey
@@ -48,7 +48,7 @@ class TestEvent:
         raw_event_id = bech32.convertbits(data, 5, 8)[:-1]
 
         # Should get the same event_id back
-        assert event.id == hexlify(bytes(raw_event_id)).decode()
+        assert event.id == bytes(raw_event_id).hex()
     
 
     def test_note_id_conformity(self):
