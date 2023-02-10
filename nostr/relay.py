@@ -35,7 +35,7 @@ class Relay:
     url: str
     message_pool: MessagePool
     policy: RelayPolicy = RelayPolicy()
-    proxy_config: RelayProxyConnectionConfig = RelayProxyConnectionConfig()
+    proxy_config: RelayProxyConnectionConfig = None
     ssl_options: Optional[dict] = None
 
     def __post_init__(self):
@@ -52,9 +52,9 @@ class Relay:
     def connect(self):
         self.ws.run_forever(
             sslopt=self.ssl_options,
-            http_proxy_host=self.proxy_config.host, 
-            http_proxy_port=self.proxy_config.port,
-            proxy_type=self.proxy_config.type
+            http_proxy_host=self.proxy_config.host if self.proxy_config is not None else None, 
+            http_proxy_port=self.proxy_config.port if self.proxy_config is not None else None,
+            proxy_type=self.proxy_config.type if self.proxy_config is not None else None,
         )
 
     def close(self):
