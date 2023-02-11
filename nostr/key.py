@@ -6,8 +6,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from hashlib import sha256
 
-from nostr.delegation import Delegation
-from nostr.event import Event
+from .delegation import Delegation
+from .event import EncryptedDirectMessage, Event, EventKind
 from . import bech32
 
 
@@ -77,6 +77,9 @@ class PrivateKey:
         encrypted_message = encryptor.update(padded_data) + encryptor.finalize()
 
         return f"{base64.b64encode(encrypted_message).decode()}?iv={base64.b64encode(iv).decode()}"
+    
+    def encrypt_dm(self, dm: EncryptedDirectMessage) -> None:
+        dm.content = self.encrypt_message(message=dm.cleartext_content, public_key_hex=dm.recipient_pubkey)
 
     def decrypt_message(self, encoded_message: str, public_key_hex: str) -> str:
         encoded_data = encoded_message.split('?iv=')
@@ -100,6 +103,10 @@ class PrivateKey:
         return sig.hex()
 
     def sign_event(self, event: Event) -> None:
+        if event.kind == EventKind.ENCRYPTED_DIRECT_MESSAGE and event.content is None:
+            self.encrypt_dm(event)
+        if event.public_key is None:
+            event.public_key = self.public_key.hex()
         event.signature = self.sign_message_hash(bytes.fromhex(event.id))
 
     def sign_delegation(self, delegation: Delegation) -> None:
@@ -107,6 +114,7 @@ class PrivateKey:
 
     def __eq__(self, other):
         return self.raw_secret == other.raw_secret
+
 
 def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
     if prefix is None and suffix is None:
@@ -121,6 +129,7 @@ def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
         break
 
     return sk
+
 
 ffi = FFI()
 @ffi.callback("int (unsigned char *, const unsigned char *, const unsigned char *, void *)")
