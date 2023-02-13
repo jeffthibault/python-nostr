@@ -7,8 +7,8 @@ from cryptography.hazmat.primitives import padding
 from hashlib import sha256
 from typing import cast, Optional
 
-from nostr.delegation import Delegation
-from nostr.event import EncryptedDirectMessage, Event, EventKind
+from .delegation import Delegation
+from .event import EncryptedDirectMessage, Event, EventKind
 from . import bech32
 
 
