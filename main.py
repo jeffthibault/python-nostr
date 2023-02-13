@@ -33,13 +33,9 @@ async def dm():
 
     print(f"Your public key: {client.public_key.bech32()}")
 
-    # await asyncio.sleep(1)
     t = threading.Thread(
         target=client.get_dm,
-        args=(
-            client.public_key,
-            callback,
-        ),
+        args=(client.public_key, callback),
     )
     t.start()
 

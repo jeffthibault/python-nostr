@@ -96,12 +96,13 @@ class NostrClient:
         self.private_key.sign_event(dm)
         self.relay_manager.publish_event(dm)
 
-    def get_dm(self, sender_publickey: PublicKey, callback_func=None):
+    def get_dm(self, sender_publickey: PublicKey, callback_func=None, filter_kwargs={}):
         filters = Filters(
             [
                 Filter(
                     kinds=[EventKind.ENCRYPTED_DIRECT_MESSAGE],
                     pubkey_refs=[sender_publickey.hex()],
+                    **filter_kwargs,
                 )
             ]
         )
