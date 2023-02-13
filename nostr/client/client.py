@@ -30,8 +30,8 @@ class NostrClient:
     private_key: PrivateKey
     public_key: PublicKey
 
-    def __init__(self, privatekey_hex: str = "", relays: List[str] = [], connect=True):
-        self.generate_keys(privatekey_hex)
+    def __init__(self, private_key: str = "", relays: List[str] = [], connect=True):
+        self.generate_keys(private_key)
 
         if len(relays):
             self.relays = relays
@@ -48,9 +48,13 @@ class NostrClient:
     def close(self):
         self.relay_manager.close_connections()
 
-    def generate_keys(self, privatekey_hex: str = None):
-        pk = bytes.fromhex(privatekey_hex) if privatekey_hex else None
-        self.private_key = PrivateKey(pk)
+    def generate_keys(self, private_key: str = None):
+        if private_key.startswith("nsec"):
+            self.private_key = PrivateKey.from_nsec(private_key)
+        elif private_key:
+            self.private_key = PrivateKey(bytes.fromhex(private_key))
+        else:
+            self.private_key = PrivateKey()  # generate random key
         self.public_key = self.private_key.public_key
 
     def post(self, message: str):

@@ -27,11 +27,11 @@ async def dm():
             f"\nFrom {event.public_key[:3]}..{event.public_key[-3:]}: {decrypted_content}"
         )
 
-    client = NostrClient(privatekey_hex=pk)
+    client = NostrClient(private_key=pk)
     if not pk:
-        print(f"Your private key: {client.private_key.hex()}")
+        print(f"Your private key: {client.private_key.bech32()}")
 
-    print(f"Your public key: {client.public_key.hex()}")
+    print(f"Your public key: {client.public_key.bech32()}")
 
     # await asyncio.sleep(1)
     t = threading.Thread(
@@ -43,16 +43,20 @@ async def dm():
     )
     t.start()
 
-    to_pubk_hex = (
-        input("Enter other pubkey to post to (enter nothing to DM yourself): ")
+    pubkey_to_str = (
+        input("Enter other pubkey to DM to (enter nothing to DM yourself): ")
         or client.public_key.hex()
     )
-    print(f"Subscribing to DMs to {to_pubk_hex}")
+    if pubkey_to_str.startswith("npub"):
+        pubkey_to = PublicKey().from_npub(pubkey_to_str)
+    else:
+        pubkey_to = PublicKey(bytes.fromhex(pubkey_to_str))
+    print(f"Sending DMs to {pubkey_to.bech32()}")
     while True:
         print_status(client)
         await asyncio.sleep(1)
         msg = input("\nEnter message: ")
-        client.dm(msg, PublicKey(bytes.fromhex(to_pubk_hex)))
+        client.dm(msg, pubkey_to)
 
 
 async def post():
@@ -67,20 +71,23 @@ async def post():
             f"\nFrom {event.public_key[:3]}..{event.public_key[-3:]}: {event.content}"
         )
 
-    sender_client = NostrClient(privatekey_hex=pk)
+    sender_client = NostrClient(private_key=pk)
     # await asyncio.sleep(1)
 
-    to_pubk_hex = (
+    pubkey_to_str = (
         input(
             "Enter other pubkey (enter nothing to read your own posts, enter * for all): "
         )
         or sender_client.public_key.hex()
     )
-    if to_pubk_hex == "*":
-        to_pubk = None
+    if pubkey_to_str == "*":
+        pubkey_to = None
+    elif pubkey_to_str.startswith("npub"):
+        pubkey_to = PublicKey().from_npub(pubkey_to_str)
     else:
-        print(f"Subscribing to posts by {to_pubk_hex}")
-        to_pubk = PublicKey(bytes.fromhex(to_pubk_hex))
+        pubkey_to = PublicKey(bytes.fromhex(pubkey_to_str))
+
+    print(f"Subscribing to posts by {pubkey_to.bech32() if pubkey_to else 'everyone'}")
 
     filters = {
         "since": int(
@@ -93,7 +100,7 @@ async def post():
     t = threading.Thread(
         target=sender_client.get_post,
         args=(
-            to_pubk,
+            pubkey_to,
             callback,
             filters,
         ),
@@ -107,9 +114,9 @@ async def post():
         sender_client.post(msg)
 
 
-if input("Enter '1' for DM, '2' for Posts (Default: 1):") or 1 == 1:
-    # write a DM and receive DMs
-    asyncio.run(dm())
-else:
+if input("Enter '1' for DM, '2' for Posts (Default: 1): ") == "2":
     # make a post and subscribe to posts
     asyncio.run(post())
+else:
+    # write a DM and receive DMs
+    asyncio.run(dm())
