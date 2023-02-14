@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 from threading import Lock
 from typing import Optional
-from websocket import WebSocketApp
+from websocket import WebSocketApp, WebSocketConnectionClosedException
 from .event import Event
 from .filter import Filters
 from .message_pool import MessagePool
@@ -66,7 +66,11 @@ class Relay:
         self.ws.close()
 
     def publish(self, message: str):
-        self.ws.send(message)
+        try:
+            self.ws.send(message)
+        except WebSocketConnectionClosedException as e:
+            logging.error("Connection closed on publish attempt. url=%s",
+                          self.url)
 
     def add_subscription(self, id, filters: Filters):
         with self.lock:
