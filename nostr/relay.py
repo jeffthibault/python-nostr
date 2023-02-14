@@ -11,6 +11,10 @@ from .message_pool import MessagePool
 from .message_type import RelayMessageType
 from .subscription import Subscription
 
+
+logger = logging.getLogger('nostr')
+
+
 @dataclass
 class RelayPolicy:
     should_read: bool = True
@@ -69,8 +73,8 @@ class Relay:
         try:
             self.ws.send(message)
         except WebSocketConnectionClosedException as e:
-            logging.error("Connection closed on publish attempt. url=%s",
-                          self.url)
+            logger.error("Connection closed on publish attempt. url=%s",
+                         self.url)
 
     def add_subscription(self, id, filters: Filters):
         with self.lock:
@@ -93,11 +97,11 @@ class Relay:
         }
 
     def _on_open(self, class_obj):
-        logging.debug("Relay._on_open: url=%s", self.url)
+        logger.debug("Relay._on_open: url=%s", self.url)
         pass
 
     def _on_close(self, class_obj, status_code, message):
-        logging.debug("Relay._on_close: url=%s, code=%s, message=%s", self.url,
+        logger.debug("Relay._on_close: url=%s, code=%s, message=%s", self.url,
                       status_code, message)
         pass
 
@@ -105,7 +109,7 @@ class Relay:
         self.message_pool.add_message(message, self.url)
 
     def _on_error(self, class_obj, error):
-        logging.debug("Relay._on_error: url=%s, error=%s", self.url, error)
+        logger.debug("Relay._on_error: url=%s, error=%s", self.url, error)
         pass
 
     def _is_valid_message(self, message: str) -> bool:
