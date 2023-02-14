@@ -1,10 +1,11 @@
 import secrets
 import base64
-import secp256k1
+import secp256k1  # type: ignore
 from cffi import FFI
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from hashlib import sha256
+from typing import cast, Optional
 
 from .delegation import Delegation
 from .event import EncryptedDirectMessage, Event, EventKind
@@ -35,7 +36,7 @@ class PublicKey:
 
 
 class PrivateKey:
-    def __init__(self, raw_secret: bytes=None) -> None:
+    def __init__(self, raw_secret: Optional[bytes]=None) -> None:
         if not raw_secret is None:
             self.raw_secret = raw_secret
         else:
@@ -77,7 +78,7 @@ class PrivateKey:
         encrypted_message = encryptor.update(padded_data) + encryptor.finalize()
 
         return f"{base64.b64encode(encrypted_message).decode()}?iv={base64.b64encode(iv).decode()}"
-    
+
     def encrypt_dm(self, dm: EncryptedDirectMessage) -> None:
         dm.content = self.encrypt_message(message=dm.cleartext_content, public_key_hex=dm.recipient_pubkey)
 
@@ -104,7 +105,8 @@ class PrivateKey:
 
     def sign_event(self, event: Event) -> None:
         if event.kind == EventKind.ENCRYPTED_DIRECT_MESSAGE and event.content is None:
-            self.encrypt_dm(event)
+            edm = cast(EncryptedDirectMessage, event)
+            self.encrypt_dm(edm)
         if event.public_key is None:
             event.public_key = self.public_key.hex()
         event.signature = self.sign_message_hash(bytes.fromhex(event.id))
@@ -116,7 +118,7 @@ class PrivateKey:
         return self.raw_secret == other.raw_secret
 
 
-def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
+def mine_vanity_key(prefix: Optional[str] = None, suffix: Optional[str] = None) -> PrivateKey:
     if prefix is None and suffix is None:
         raise ValueError("Expected at least one of 'prefix' or 'suffix' arguments")
 

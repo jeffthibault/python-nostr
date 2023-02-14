@@ -1,5 +1,5 @@
 from collections import UserList
-from typing import List
+from typing import List, Optional
 
 from .event import Event, EventKind
 
@@ -16,20 +16,21 @@ class Filter:
     added. For example:
         # arbitrary tag
         filter.add_arbitrary_tag('t', [hashtags])
-    
+
         # promoted to explicit support
         Filter(hashtag_refs=[hashtags])
     """
     def __init__(
-            self, 
-            event_ids: List[str] = None, 
-            kinds: List[EventKind] = None, 
-            authors: List[str] = None, 
-            since: int = None, 
-            until: int = None, 
-            event_refs: List[str] = None,       # the "#e" attr; list of event ids referenced in an "e" tag
-            pubkey_refs: List[str] = None,      # The "#p" attr; list of pubkeys referenced in a "p" tag
-            limit: int = None) -> None:
+            self,
+            event_ids: Optional[List[str]] = None,
+            kinds: Optional[List[EventKind]] = None,
+            authors: Optional[List[str]] = None,
+            since: Optional[int] = None,
+            until: Optional[int] = None,
+            event_refs: Optional[List[str]] = None,       # the "#e" attr; list of event ids referenced in an "e" tag
+            pubkey_refs: Optional[List[str]] = None,      # The "#p" attr; list of pubkeys referenced in a "p" tag
+            limit: Optional[int] = None,
+    ) -> None:
         self.event_ids = event_ids
         self.kinds = kinds
         self.authors = authors

@@ -1,6 +1,7 @@
 import json
 import time
 import threading
+from typing import Optional
 from dataclasses import dataclass
 from threading import Lock
 
@@ -26,20 +27,21 @@ class RelayManager:
         self.lock: Lock = Lock()
 
     def add_relay(
-            self, 
-            url: str, 
+            self,
+            url: str,
             policy: RelayPolicy = RelayPolicy(),
-            ssl_options: dict = None,
-            proxy_config: RelayProxyConnectionConfig = None):
+            ssl_options: Optional[dict] = None,
+            proxy_config: Optional[RelayProxyConnectionConfig] = None):
 
-        relay = Relay(url, self.message_pool, policy, ssl_options, proxy_config)
+        relay = Relay(url, self.message_pool, policy, proxy_config, ssl_options)
 
         with self.lock:
             self.relays[url] = relay
 
         threading.Thread(
             target=relay.connect,
-            name=f"{relay.url}-thread"
+            name=f"{relay.url}-thread",
+            daemon=True,
         ).start()
 
         time.sleep(1)
@@ -55,12 +57,12 @@ class RelayManager:
             if url in self.relays:
                 relay = self.relays[url]
                 if not relay.policy.should_read:
-                    raise RelayException(f"Could not send request: {relay_url} is not configured to read from")
+                    raise RelayException(f"Could not send request: {url} is not configured to read from")
                 relay.add_subscription(id, filters)
                 request = Request(id, filters)
                 relay.publish(request.to_message())
             else:
-                raise RelayException(f"Invalid relay url: no connection to {relay_url}") 
+                raise RelayException(f"Invalid relay url: no connection to {url}") 
 
     def add_subscription_on_all_relays(self, id: str, filters: Filters):
         with self.lock:
@@ -77,7 +79,7 @@ class RelayManager:
                 relay.close_subscription(id)
                 relay.publish(json.dumps(["CLOSE", id]))
             else:
-                raise RelayException(f"Invalid relay url: no connection to {relay_url}")
+                raise RelayException(f"Invalid relay url: no connection to {url}")
 
     def close_subscription_on_all_relays(self, id: str):
         with self.lock:
