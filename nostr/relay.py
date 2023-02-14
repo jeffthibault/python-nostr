@@ -1,4 +1,6 @@
 import json
+import logging
+
 from dataclasses import dataclass
 from threading import Lock
 from typing import Optional
@@ -87,15 +89,19 @@ class Relay:
         }
 
     def _on_open(self, class_obj):
+        logging.debug("Relay._on_open: url=%s", self.url)
         pass
 
     def _on_close(self, class_obj, status_code, message):
+        logging.debug("Relay._on_close: url=%s, code=%s, message=%s", self.url,
+                      status_code, message)
         pass
 
     def _on_message(self, class_obj, message: str):
         self.message_pool.add_message(message, self.url)
-    
+
     def _on_error(self, class_obj, error):
+        logging.debug("Relay._on_error: url=%s, error=%s", self.url, error)
         pass
 
     def _is_valid_message(self, message: str) -> bool:
