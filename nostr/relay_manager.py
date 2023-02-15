@@ -60,12 +60,12 @@ class RelayManager:
             if url in self.relays:
                 relay = self.relays[url]
                 if not relay.policy.should_read:
-                    raise RelayException(f"Could not send request: {relay_url} is not configured to read from")
+                    raise RelayException(f"Could not send request: {url} is not configured to read from")
                 relay.add_subscription(id, filters)
                 request = Request(id, filters)
                 relay.publish(request.to_message())
             else:
-                raise RelayException(f"Invalid relay url: no connection to {relay_url}") 
+                raise RelayException(f"Invalid relay url: no connection to {url}") 
 
     def add_subscription_on_all_relays(self, id: str, filters: Filters):
         with self.lock:
@@ -82,7 +82,7 @@ class RelayManager:
                 relay.close_subscription(id)
                 relay.publish(json.dumps(["CLOSE", id]))
             else:
-                raise RelayException(f"Invalid relay url: no connection to {relay_url}")
+                raise RelayException(f"Invalid relay url: no connection to {url}")
 
     def close_subscription_on_all_relays(self, id: str):
         with self.lock:
