@@ -1,5 +1,7 @@
 import json
+import time
 from dataclasses import dataclass
+from queue import Queue
 from threading import Lock
 from typing import Optional
 from websocket import WebSocketApp
@@ -15,10 +17,8 @@ class RelayPolicy:
     should_write: bool = True
     
     def to_json_object(self) -> dict[str, bool]:
-        return { 
-            "read": self.should_read, 
-            "write": self.should_write
-        }
+        return {"read": self.should_read, "write": self.should_write}
+
 
 
 
@@ -39,7 +39,12 @@ class Relay:
     ssl_options: Optional[dict] = None
 
     def __post_init__(self):
+        self.queue = Queue()
         self.subscriptions: dict[str, Subscription] = {}
+        self.connected: bool = False
+        self.reconnect: bool = True
+        self.error_counter: int = 0
+        self.error_threshold: int = 0
         self.lock: Lock = Lock()
         self.ws: WebSocketApp = WebSocketApp(
             self.url,
@@ -60,8 +65,27 @@ class Relay:
     def close(self):
         self.ws.close()
 
+    def check_reconnect(self):
+        try:
+            self.close()
+        except:
+            pass
+        self.connected = False
+        if self.reconnect:
+            time.sleep(1)
+            self.connect()
+
     def publish(self, message: str):
-        self.ws.send(message)
+        self.queue.put(message)
+        
+    def queue_worker(self):
+        while True:
+            if self.connected:
+                message = self.queue.get()
+                self.num_sent_events += 1
+                self.ws.send(message)
+            else:
+                time.sleep(0.1)
 
     def add_subscription(self, id, filters: Filters):
         with self.lock:
@@ -80,24 +104,34 @@ class Relay:
         return {
             "url": self.url,
             "policy": self.policy.to_json_object(),
-            "subscriptions": [subscription.to_json_object() for subscription in self.subscriptions.values()]
+            "subscriptions": [
+                subscription.to_json_object()
+                for subscription in self.subscriptions.values()
+            ],
         }
 
     def _on_open(self, class_obj):
+        self.connected = True
         pass
 
     def _on_close(self, class_obj, status_code, message):
+        self.connected = False
         pass
 
     def _on_message(self, class_obj, message: str):
         self.message_pool.add_message(message, self.url)
     
     def _on_error(self, class_obj, error):
-        pass
+        self.connected = False
+        self.error_counter += 1
+        if self.error_threshold and self.error_counter > self.error_threshold:
+            pass
+        else:
+            self.check_reconnect()
 
     def _is_valid_message(self, message: str) -> bool:
         message = message.strip("\n")
-        if not message or message[0] != '[' or message[-1] != ']':
+        if not message or message[0] != "[" or message[-1] != "]":
             return False
 
         message_json = json.loads(message)
@@ -107,7 +141,7 @@ class Relay:
         if message_type == RelayMessageType.EVENT:
             if not len(message_json) == 3:
                 return False
-            
+
             subscription_id = message_json[1]
             with self.lock:
                 if subscription_id not in self.subscriptions:
@@ -128,7 +162,7 @@ class Relay:
             with self.lock:
                 subscription = self.subscriptions[subscription_id]
 
-            if not subscription.filters.match(event):
+            if subscription.filters and not subscription.filters.match(event):
                 return False
 
         return True

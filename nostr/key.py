@@ -12,7 +12,7 @@ from . import bech32
 
 
 class PublicKey:
-    def __init__(self, raw_bytes: bytes) -> None:
+    def __init__(self, raw_bytes: bytes=None) -> None:
         self.raw_bytes = raw_bytes
 
     def bech32(self) -> str:
