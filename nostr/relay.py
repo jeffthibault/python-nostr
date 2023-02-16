@@ -35,12 +35,13 @@ class Relay:
     url: str
     message_pool: MessagePool
     policy: RelayPolicy = RelayPolicy()
-    proxy_config: RelayProxyConnectionConfig = None
     ssl_options: Optional[dict] = None
+    proxy_config: RelayProxyConnectionConfig = None
 
     def __post_init__(self):
         self.queue = Queue()
         self.subscriptions: dict[str, Subscription] = {}
+        self.num_sent_events: int = 0
         self.connected: bool = False
         self.reconnect: bool = True
         self.error_counter: int = 0
@@ -82,8 +83,11 @@ class Relay:
         while True:
             if self.connected:
                 message = self.queue.get()
-                self.num_sent_events += 1
-                self.ws.send(message)
+                try:
+                    self.ws.send(message)
+                    self.num_sent_events += 1
+                except:
+                    self.queue.put(message)
             else:
                 time.sleep(0.1)
 
@@ -112,11 +116,9 @@ class Relay:
 
     def _on_open(self, class_obj):
         self.connected = True
-        pass
 
     def _on_close(self, class_obj, status_code, message):
         self.connected = False
-        pass
 
     def _on_message(self, class_obj, message: str):
         self.message_pool.add_message(message, self.url)

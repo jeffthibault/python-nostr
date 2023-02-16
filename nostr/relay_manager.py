@@ -43,9 +43,10 @@ class RelayManager:
         ).start()
         
         threading.Thread(
-                target=relay.queue_worker,
-                name=f"{relay.url}-queue",
-            ).start()
+            target=relay.queue_worker,
+            name=f"{relay.url}-queue",
+            daemon=True
+        ).start()
 
         time.sleep(1)
 
