@@ -1,5 +1,7 @@
 # python-nostr
 A Python library for making [Nostr](https://github.com/nostr-protocol/nostr) clients
+<br/>
+[![pip release](https://github.com/jeffthibault/python-nostr/actions/workflows/pip_release.yaml/badge.svg)](https://github.com/jeffthibault/python-nostr/actions/workflows/pip_release.yaml)
 
 ## Usage
 **Generate a key**
