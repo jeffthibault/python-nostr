@@ -50,10 +50,11 @@ time.sleep(1.25) # allow the connections to open
 
 private_key = PrivateKey()
 
-event = Event("Hello Nostr")
-private_key.sign_event(event)
+event = Event(private_key.public_key.hex(), "Hello Nostr")
+event.sign(private_key.hex())
 
-relay_manager.publish_event(event)
+message = json.dumps([ClientMessageType.EVENT, event.to_json_object()])
+relay_manager.publish_message(message)
 time.sleep(1) # allow the messages to send
 
 relay_manager.close_connections()
