@@ -1,7 +1,9 @@
 from .filter import Filters
 
 class Subscription:
-    def __init__(self, id: str, filters: Filters=None) -> None:
+    def __init__(self, id: str, filters: Filters) -> None:
+        if not isinstance(id, str):
+            raise TypeError("Argument 'id' must be of type str")
         self.id = id
         self.filters = filters
 
