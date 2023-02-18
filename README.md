@@ -48,7 +48,13 @@ relay_manager.add_relay("wss://relay.damus.io")
 relay_manager.open_connections({"cert_reqs": ssl.CERT_NONE}) # NOTE: This disables ssl certificate verification
 time.sleep(1.25) # allow the connections to open
 
-private_key = PrivateKey()
+private_key = PrivateKey() # NOTE: This will sign and publish a message from a randomly generated key pair
+
+# The below commented 2 lines allow you to sign a message from a specific key pair, it
+# can be used alternatively to the random generated pair above
+
+# k = bytes.fromhex(nostr_private_key)
+# private_key = PrivateKey(k)
 
 event = Event("Hello Nostr")
 private_key.sign_event(event)
