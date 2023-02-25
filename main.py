@@ -34,8 +34,7 @@ async def dm():
     print(f"Your public key: {client.public_key.bech32()}")
 
     t = threading.Thread(
-        target=client.get_dm,
-        args=(client.public_key, callback),
+        target=client.get_dm, args=(client.public_key, callback), daemon=True
     )
     t.start()
 
@@ -100,6 +99,7 @@ async def post():
             callback,
             filters,
         ),
+        daemon=True,
     )
     t.start()
 
