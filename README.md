@@ -1,6 +1,14 @@
 # python-nostr
 A Python library for making [Nostr](https://github.com/nostr-protocol/nostr) clients
 
+
+## Installation
+```bash
+pip install nostr
+```
+
+Note: I wrote this with Python 3.9.5.
+
 ## Usage
 **Generate a key**
 ```python
@@ -158,13 +166,6 @@ The resulting delegation tag can be stored as plaintext and reused as-is by the 
 
 Hopefully clients will include an optional field to store the delegation tag. That would allow the "delegatee" PK to seamlessly post messages on the "identity" key's behalf, while the "identity" key stays safely offline in cold storage.
 
-
-## Installation
-```bash
-pip install nostr
-```
-
-Note: I wrote this with Python 3.9.5.
 
 ## Test Suite
 See the [Test Suite README](test/README.md)
