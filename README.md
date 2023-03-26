@@ -115,6 +115,7 @@ while relay_manager.message_pool.has_events():
   event_msg = relay_manager.message_pool.get_event()
   print(event_msg.event.content)
   
+relay_manager.close_subscription_on_all_relays(subscription_id)
 relay_manager.close_connections()
 ```
 
