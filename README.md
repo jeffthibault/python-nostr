@@ -108,13 +108,8 @@ request.extend(filters.to_json_array())
 relay_manager = RelayManager()
 relay_manager.add_relay("wss://nostr-pub.wellorder.net")
 relay_manager.add_relay("wss://relay.damus.io")
-relay_manager.add_subscription(subscription_id, filters)
-relay_manager.open_connections({"cert_reqs": ssl.CERT_NONE}) # NOTE: This disables ssl certificate verification
+relay_manager.add_subscription_on_all_relays(subscription_id, filters)
 time.sleep(1.25) # allow the connections to open
-
-message = json.dumps(request)
-relay_manager.publish_message(message)
-time.sleep(1) # allow the messages to send
 
 while relay_manager.message_pool.has_events():
   event_msg = relay_manager.message_pool.get_event()
