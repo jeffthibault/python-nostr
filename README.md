@@ -1,6 +1,13 @@
 # python-nostr
 A Python library for making [Nostr](https://github.com/nostr-protocol/nostr) clients
 
+## Installation
+```bash
+pip install nostr
+```
+
+Note: I wrote this with Python 3.9.5.
+
 ## Usage
 **Generate a key**
 ```python
@@ -50,10 +57,10 @@ time.sleep(1.25) # allow the connections to open
 
 private_key = PrivateKey()
 
-event = Event("Hello Nostr")
-private_key.sign_event(event)
-
-relay_manager.publish_event(event)
+event = Event(private_key.public_key.hex(), "Hello Nostr")
+event.sign(private_key.hex())
+message = json.dumps([ClientMessageType.EVENT, event.to_json_object()])
+relay_manager.publish_event(message)
 time.sleep(1) # allow the messages to send
 
 relay_manager.close_connections()
@@ -158,13 +165,6 @@ The resulting delegation tag can be stored as plaintext and reused as-is by the 
 
 Hopefully clients will include an optional field to store the delegation tag. That would allow the "delegatee" PK to seamlessly post messages on the "identity" key's behalf, while the "identity" key stays safely offline in cold storage.
 
-
-## Installation
-```bash
-pip install nostr
-```
-
-Note: I wrote this with Python 3.9.5.
 
 ## Test Suite
 See the [Test Suite README](test/README.md)
