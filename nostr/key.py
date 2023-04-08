@@ -58,10 +58,6 @@ class PrivateKey:
     def hex(self) -> str:
         return self.raw_secret.hex()
 
-    def tweak_add(self, scalar: bytes) -> bytes:
-        sk = secp256k1.PrivateKey(self.raw_secret)
-        return sk.tweak_add(scalar)
-
     def compute_shared_secret(self, public_key_hex: str) -> bytes:
         pk = secp256k1.PublicKey(bytes.fromhex("02" + public_key_hex), True)
         return pk.ecdh(self.raw_secret, hashfn=copy_x)
@@ -132,6 +128,8 @@ def mine_vanity_key(prefix: str = None, suffix: str = None) -> PrivateKey:
 
 
 ffi = FFI()
+
+
 @ffi.callback("int (unsigned char *, const unsigned char *, const unsigned char *, void *)")
 def copy_x(output, x32, y32, data):
     ffi.memmove(output, x32, 32)
