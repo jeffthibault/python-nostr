@@ -21,15 +21,17 @@ from . import cbc
 
 class NostrClient:
     relays = [
-        "wss://nostr-pub.wellorder.net",
-        "wss://relay.damus.io",
-        "wss://nostr.zebedee.cloud",
-        "wss://relay.snort.social",
-        "wss://nostr.fmt.wiz.biz",
-        "wss://nos.lol",
-        "wss://nostr.oxtr.dev",
-        "wss://relay.current.fyi",
-        "wss://relay.snort.social",
+        # "wss://eagerporpoise9.lnbits.com/nostrclient/api/v1/relay",
+        "wss://localhost:5001/nostrclient/api/v1/relay",
+        # "wss://nostr-pub.wellorder.net",
+        # "wss://relay.damus.io",
+        # "wss://nostr.zebedee.cloud",
+        # "wss://relay.snort.social",
+        # "wss://nostr.fmt.wiz.biz",
+        # "wss://nos.lol",
+        # "wss://nostr.oxtr.dev",
+        # "wss://relay.current.fyi",
+        # "wss://relay.snort.social",
     ]  # ["wss://nostr.oxtr.dev"]  # ["wss://relay.nostr.info"] "wss://nostr-pub.wellorder.net"  "ws://91.237.88.218:2700", "wss://nostrrr.bublina.eu.org", ""wss://nostr-relay.freeberty.net"", , "wss://nostr.oxtr.dev", "wss://relay.nostr.info", "wss://nostr-pub.wellorder.net" , "wss://relayer.fiatjaf.com", "wss://nodestr.fmt.wiz.biz/", "wss://no.str.cr"
     relay_manager = RelayManager()
     private_key: PrivateKey
@@ -85,6 +87,7 @@ class NostrClient:
         request = [ClientMessageType.REQUEST, subscription_id]
         request.extend(filters.to_json_array())
         message = json.dumps(request)
+        # print(message)
         self.relay_manager.publish_message(message)
 
         while True:
@@ -99,6 +102,7 @@ class NostrClient:
             recipient_pubkey=to_pubkey.hex(), cleartext_content=message
         )
         self.private_key.sign_event(dm)
+        # print(dm)
         self.relay_manager.publish_event(dm)
 
     def get_dm(self, sender_publickey: PublicKey, callback_func=None, filter_kwargs={}):
@@ -118,7 +122,7 @@ class NostrClient:
         request.extend(filters.to_json_array())
         message = json.dumps(request)
         self.relay_manager.publish_message(message)
-
+        # print(message)
         while True:
             while self.relay_manager.message_pool.has_events():
                 event_msg = self.relay_manager.message_pool.get_event()
@@ -139,10 +143,25 @@ class NostrClient:
                 break
             time.sleep(0.1)
 
-    def subscribe(self, callback_func=None):
+    def subscribe(
+        self,
+        callback_events_func=None,
+        callback_notices_func=None,
+        callback_eosenotices_func=None,
+    ):
         while True:
             while self.relay_manager.message_pool.has_events():
                 event_msg = self.relay_manager.message_pool.get_event()
-                if callback_func:
-                    callback_func(event_msg.event)
+                print(event_msg.event.content)
+                if callback_events_func:
+                    callback_events_func(event_msg)
+            while self.relay_manager.message_pool.has_notices():
+                event_msg = self.relay_manager.message_pool.has_notices()
+                if callback_notices_func:
+                    callback_notices_func(event_msg)
+            while self.relay_manager.message_pool.has_eose_notices():
+                event_msg = self.relay_manager.message_pool.get_eose_notice()
+                if callback_eosenotices_func:
+                    callback_eosenotices_func(event_msg)
+
             time.sleep(0.1)
