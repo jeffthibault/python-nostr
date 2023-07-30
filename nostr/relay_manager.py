@@ -1,6 +1,7 @@
 import json
 import time
 import threading
+from typing import Optional
 from dataclasses import dataclass
 from threading import Lock
 
@@ -26,20 +27,21 @@ class RelayManager:
         self.lock: Lock = Lock()
 
     def add_relay(
-            self, 
-            url: str, 
+            self,
+            url: str,
             policy: RelayPolicy = RelayPolicy(),
-            ssl_options: dict = None,
-            proxy_config: RelayProxyConnectionConfig = None):
+            ssl_options: Optional[dict] = None,
+            proxy_config: Optional[RelayProxyConnectionConfig] = None):
 
-        relay = Relay(url, self.message_pool, policy, ssl_options, proxy_config)
+        relay = Relay(url, self.message_pool, policy, proxy_config, ssl_options)
 
         with self.lock:
             self.relays[url] = relay
 
         threading.Thread(
             target=relay.connect,
-            name=f"{relay.url}-thread"
+            name=f"{relay.url}-thread",
+            daemon=True
         ).start()
         
         threading.Thread(
