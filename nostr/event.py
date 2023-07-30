@@ -1,4 +1,5 @@
 import time
+from typing import Optional
 import json
 from dataclasses import dataclass, field
 from enum import IntEnum
@@ -23,12 +24,12 @@ class EventKind(IntEnum):
 
 @dataclass
 class Event:
-    content: str = None
-    public_key: str = None
-    created_at: int = None
-    kind: int = EventKind.TEXT_NOTE
+    content: Optional[str] = None
+    public_key: Optional[str] = None
+    created_at: Optional[int] = None
+    kind: Optional[int] = EventKind.TEXT_NOTE
     tags: List[List[str]] = field(default_factory=list)  # Dataclasses require special handling when the default value is a mutable type
-    signature: str = None
+    signature: Optional[str] = None
 
 
     def __post_init__(self):
@@ -81,27 +82,42 @@ class Event:
     def to_json(self) -> list:
         return [
                 ClientMessageType.EVENT,
-                {
-                    "id": self.id,
-                    "pubkey": self.public_key,
-                    "created_at": self.created_at,
-                    "kind": self.kind,
-                    "tags": self.tags,
-                    "content": self.content,
-                    "sig": self.signature
-                }
+                self.to_dict()
             ]
 
     def to_message(self) -> str:
         return json.dumps(self.to_json())
 
+    @classmethod
+    def from_dict(cls, msg: dict) -> 'Event':
+        # "id" is ignore, as it will be computed from the contents
+        return Event(
+            content=msg['content'],
+            public_key=msg['pubkey'],
+            created_at=msg['created_at'],
+            kind=msg['kind'],
+            tags=msg['tags'],
+            signature=msg['sig'],
+        )
+
+    def to_dict(self) -> dict:
+        return {
+                "id": self.id,
+                "pubkey": self.public_key,
+                "created_at": self.created_at,
+                "kind": self.kind,
+                "tags": self.tags,
+                "content": self.content,
+                "sig": self.signature
+                }
+
 
 
 @dataclass
 class EncryptedDirectMessage(Event):
-    recipient_pubkey: str = None
-    cleartext_content: str = None
-    reference_event_id: str = None
+    recipient_pubkey: Optional[str] = None
+    cleartext_content: Optional[str] = None
+    reference_event_id: Optional[str] = None
 
 
     def __post_init__(self):

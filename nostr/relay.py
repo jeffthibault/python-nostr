@@ -1,7 +1,9 @@
 import json
 import time
-from dataclasses import dataclass, field
 from queue import Queue
+import logging
+
+from dataclasses import dataclass, field
 from threading import Lock
 from typing import Optional
 from websocket import WebSocketApp
@@ -10,6 +12,10 @@ from .filter import Filters
 from .message_pool import MessagePool
 from .message_type import RelayMessageType
 from .subscription import Subscription
+
+
+logger = logging.getLogger('nostr')
+
 
 @dataclass
 class RelayPolicy:
@@ -35,8 +41,8 @@ class Relay:
     url: str
     message_pool: MessagePool
     policy: RelayPolicy = field(default_factory=RelayPolicy)
+    proxy_config: Optional[RelayProxyConnectionConfig] = None
     ssl_options: Optional[dict] = None
-    proxy_config: RelayProxyConnectionConfig = None
 
     def __post_init__(self):
         self.queue = Queue()
@@ -58,9 +64,10 @@ class Relay:
     def connect(self):
         self.ws.run_forever(
             sslopt=self.ssl_options,
-            http_proxy_host=self.proxy_config.host if self.proxy_config is not None else None, 
+            http_proxy_host=self.proxy_config.host if self.proxy_config is not None else None,
             http_proxy_port=self.proxy_config.port if self.proxy_config is not None else None,
             proxy_type=self.proxy_config.type if self.proxy_config is not None else None,
+            else None,
         )
 
     def close(self):
@@ -119,10 +126,15 @@ class Relay:
 
     def _on_close(self, class_obj, status_code, message):
         self.connected = False
+        logger.debug("Relay._on_open: url=%s", self.url)
+
+    def _on_close(self, class_obj, status_code, message):
+        logger.debug("Relay._on_close: url=%s, code=%s, message=%s", self.url,
+                      status_code, message)
 
     def _on_message(self, class_obj, message: str):
         self.message_pool.add_message(message, self.url)
-    
+
     def _on_error(self, class_obj, error):
         self.connected = False
         self.error_counter += 1
@@ -130,6 +142,7 @@ class Relay:
             pass
         else:
             self.check_reconnect()
+        logger.debug("Relay._on_error: url=%s, error=%s", self.url, error)
 
     def _is_valid_message(self, message: str) -> bool:
         message = message.strip("\n")
@@ -149,15 +162,7 @@ class Relay:
                 if subscription_id not in self.subscriptions:
                     return False
 
-            e = message_json[2]
-            event = Event(
-                e["content"],
-                e["pubkey"],
-                e["created_at"],
-                e["kind"],
-                e["tags"],
-                e["sig"],
-            )
+            event = Event.from_dict(message_json[2])
             if not event.verify():
                 return False
 
