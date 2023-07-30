@@ -39,7 +39,8 @@ class RelayManager:
 
         threading.Thread(
             target=relay.connect,
-            name=f"{relay.url}-thread"
+            name=f"{relay.url}-thread",
+            daemon=True
         ).start()
         
         threading.Thread(

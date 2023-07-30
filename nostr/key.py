@@ -52,6 +52,11 @@ class PrivateKey:
         raw_secret = bech32.convertbits(data, 5, 8)[:-1]
         return cls(bytes(raw_secret))
 
+    @classmethod
+    def from_hex(cls, hex: str):
+        """ Load a PrivateKey from its bech32/nsec form """
+        return cls(bytes.fromhex(hex))
+
     def bech32(self) -> str:
         converted_bits = bech32.convertbits(self.raw_secret, 8, 5)
         return bech32.bech32_encode("nsec", converted_bits, bech32.Encoding.BECH32)
