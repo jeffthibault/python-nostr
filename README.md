@@ -50,7 +50,7 @@ time.sleep(1.25) # allow the connections to open
 
 private_key = PrivateKey()
 
-event = Event("Hello Nostr")
+event = Event(private_key.public_key.hex(), "Hello Nostr")
 private_key.sign_event(event)
 
 relay_manager.publish_event(event)
