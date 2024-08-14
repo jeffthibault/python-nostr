@@ -1,6 +1,6 @@
 import json
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from queue import Queue
 from threading import Lock
 from typing import Optional
@@ -34,7 +34,7 @@ class RelayProxyConnectionConfig:
 class Relay:
     url: str
     message_pool: MessagePool
-    policy: RelayPolicy = RelayPolicy()
+    policy: RelayPolicy = field(default_factory=RelayPolicy)
     ssl_options: Optional[dict] = None
     proxy_config: RelayProxyConnectionConfig = None
 
