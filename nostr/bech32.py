@@ -77,7 +77,7 @@ def bech32_decode(bech):
         return (None, None, None)
     bech = bech.lower()
     pos = bech.rfind('1')
-    if pos < 1 or pos + 7 > len(bech) or len(bech) > 90:
+    if pos < 1 or pos + 7 > len(bech) or len(bech) > 5000:
         return (None, None, None)
     if not all(x in CHARSET for x in bech[pos+1:]):
         return (None, None, None)
@@ -135,3 +135,73 @@ def encode(hrp, witver, witprog):
     if decode(hrp, ret) == (None, None):
         return None
     return ret
+
+def parse_tlv(data: bytes) -> dict:
+    result = {}
+    rest = data
+
+    while len(rest) > 1:
+        # Get type and length
+        t = rest[0]
+        l = rest[1]
+
+        # Get value and remaining data
+        v = rest[2 : 2 + l]
+        rest = rest[2 + l :]
+
+        # Check if we have enough data
+        if len(v) < l:
+            raise ValueError(f"not enough data to read on TLV {t}")
+
+        # Initialize list for this type if not exists
+        if t not in result:
+            result[t] = []
+
+        # Append value to list
+        result[t].append(v)
+
+    return result
+
+def encode_tlv(tlv: dict) -> bytes:
+    entries = []
+
+    # Sort items in reverse order (like .reverse() in JS)
+    for t, vs in sorted(tlv.items(), reverse=True):
+        for v in vs:
+            # Create new bytes object with length = value length + 2 (type and length)
+            entry = bytearray(len(v) + 2)
+
+            # Set type
+            entry[0] = int(t)
+            # Set length
+            entry[1] = len(v)
+            # Set value
+            entry[2:] = v
+
+            entries.append(bytes(entry))
+
+    return b''.join(entries)
+
+
+def nprofile_encode(pubkey_hex, relays=None) -> bytes:
+
+    tlv_data = {
+        0: [bytes.fromhex(pubkey_hex)],
+        1: [url.encode('utf-8') for url in (relays or [])],
+    }
+
+    data = encode_tlv(tlv_data)
+    converted_bits = convertbits(data, 8, 5)
+    return bech32_encode('nprofile', converted_bits, Encoding.BECH32)
+
+def nprofile_decode(nprofile_string):
+    hrp, data, spec = bech32_decode(nprofile_string)
+    #converted_bits = concat_bytes( bytes(convertbits(data, 5, 8)))
+    converted_bits = bytes(convertbits(data, 5, 8))
+    tlv = parse_tlv(converted_bits)
+    pubkey_hex = tlv[0][0].hex()
+    relays = tlv[1] if len(tlv) > 1 else None
+    
+    return pubkey_hex, relays
+
+
