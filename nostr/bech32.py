@@ -200,7 +200,7 @@ def nprofile_decode(nprofile_string):
     converted_bits = bytes(convertbits(data, 5, 8))
     tlv = parse_tlv(converted_bits)
     pubkey_hex = tlv[0][0].hex()
-    relays = tlv[1] if len(tlv) > 1 else None
+    relays = [_.decode() for _ in tlv[1]] if len(tlv) > 1 else None
     
     return pubkey_hex, relays
 
